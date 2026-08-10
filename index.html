@@ -1200,5 +1200,12 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     renderAll();
 })();
 </script>
+    <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js")
+    .then(() => console.log("LevelUp notifications ready"))
+    .catch(err => console.error("SW error:", err));
+}
+</script>
 </body>
 </html>
