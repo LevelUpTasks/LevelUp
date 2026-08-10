@@ -1,0 +1,41 @@
+function handleICSFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const text = e.target.result;
+            const importedEvents = parseICS(text);
+            
+            // Manually adjust dates by subtracting a day if needed
+            // This is a quick fix - change the number based on how many days off
+            const adjustedEvents = importedEvents.map(event => {
+                const date = new Date(event.date);
+                // Subtract 1 day if events are off by a day
+                // Change this to +1 if they're off the other way
+                date.setDate(date.getDate() + 0); // Change 0 to 1 or -1 as needed
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                
+                return {
+                    ...event,
+                    date: `${year}-${month}-${day}`
+                };
+            });
+            
+            if (adjustedEvents.length === 0) {
+                alert('No events found in this ICS file.');
+                return;
+            }
+            
+            if (!DATA.events) DATA.events = [];
+            DATA.events = DATA.events.concat(adjustedEvents);
+            save();
+            renderAll();
+            alert(`✅ Successfully imported ${adjustedEvents.length} events!`);
+        } catch (err) {
+            alert('Error parsing ICS file: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
