@@ -1207,5 +1207,22 @@ if ("serviceWorker" in navigator) {
     .catch(err => console.error("SW error:", err));
 }
 </script>
+    <script>
+async function enableNotifications() {
+  if (!("Notification" in window)) {
+    alert("Notifications aren't supported on this device.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    new Notification("LevelUp 🔥", {
+      body: "Notifications are now enabled!"
+    });
+  }
+}
+</script>
+    
 </body>
 </html>
