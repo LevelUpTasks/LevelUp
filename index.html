@@ -1224,6 +1224,16 @@ async function enableNotifications() {
   }
 }
 </script>
-    
+    <script>
+if ("Notification" in window) {
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      new Notification("LevelUp 🔔", {
+        body: "Notifications are now enabled!"
+      });
+    }
+  });
+}
+</script>
 </body>
 </html>
