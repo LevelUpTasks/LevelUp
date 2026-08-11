@@ -1,545 +1,1034 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#7c3aed">
-  <meta name="description" content="LevelUp To-Do">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
 
-  <title>LevelUp To-Do</title>
+<title>LevelUp</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+:root{
+  --bg:#f5f3ff;
+  --card:#ffffff;
+  --primary:#7c3aed;
+  --primary-dark:#5b21b6;
+  --text:#171717;
+  --muted:#737373;
+  --border:#e9e5f5;
+  --green:#16a34a;
+  --red:#dc2626;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f5ff;
-      color: #171717;
-      min-height: 100vh;
-    }
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-    header {
-      background: #7c3aed;
-      color: white;
-      padding: 22px 18px;
-      border-radius: 0 0 24px 24px;
-    }
+body{
+  font-family:Inter,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
 
-    header h1 {
-      font-size: 28px;
-      margin-bottom: 5px;
-    }
+button,
+input,
+textarea{
+  font:inherit;
+}
 
-    header p {
-      opacity: 0.85;
-    }
+button{
+  border:0;
+  cursor:pointer;
+}
 
-    main {
-      max-width: 650px;
-      margin: auto;
-      padding: 18px;
-      padding-bottom: 90px;
-    }
+/* HEADER */
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
+.hero{
+  background:linear-gradient(135deg,#7c3aed,#4c1d95);
+  color:white;
+  padding:28px 20px 34px;
+  border-radius:0 0 30px 30px;
+}
 
-    .stat {
-      background: white;
-      border-radius: 16px;
-      padding: 15px 8px;
-      text-align: center;
-      box-shadow: 0 3px 12px rgba(0,0,0,.06);
-    }
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:22px;
+}
 
-    .stat strong {
-      display: block;
-      font-size: 22px;
-      color: #7c3aed;
-    }
+.logo{
+  font-size:25px;
+  font-weight:800;
+}
 
-    .stat span {
-      font-size: 12px;
-      color: #737373;
-    }
+.date{
+  font-size:13px;
+  opacity:.8;
+}
 
-    .add-box {
-      background: white;
-      padding: 15px;
-      border-radius: 18px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.06);
-      margin-bottom: 18px;
-    }
+.greeting{
+  font-size:14px;
+  opacity:.8;
+  margin-bottom:5px;
+}
 
-    .input-row {
-      display: flex;
-      gap: 8px;
-    }
+.hero h1{
+  font-size:30px;
+  margin-bottom:7px;
+}
 
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid #ddd6fe;
-      border-radius: 12px;
-      padding: 13px;
-      font-size: 15px;
-      outline: none;
-      background: #fafafa;
-    }
+.hero-sub{
+  font-size:14px;
+  opacity:.82;
+}
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #7c3aed;
-    }
+/* MAIN */
 
-    button {
-      border: none;
-      cursor: pointer;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: bold;
-    }
+main{
+  width:100%;
+  max-width:700px;
+  margin:auto;
+  padding:18px;
+  padding-bottom:100px;
+}
 
-    .add-btn {
-      background: #7c3aed;
-      color: white;
-      min-width: 70px;
-    }
+/* PROGRESS */
 
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 22px 0 10px;
-    }
+.progress-card{
+  background:var(--card);
+  border-radius:22px;
+  padding:18px;
+  margin-top:-5px;
+  box-shadow:0 8px 25px rgba(76,29,149,.08);
+}
 
-    .section-title h2 {
-      font-size: 19px;
-    }
+.progress-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
 
-    .clear-btn {
-      background: transparent;
-      color: #7c3aed;
-      padding: 5px;
-    }
+.progress-title{
+  font-weight:700;
+}
 
-    .task {
-      background: white;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.05);
-    }
+.progress-percent{
+  color:var(--primary);
+  font-weight:800;
+}
 
-    .task.done {
-      opacity: .55;
-    }
+.progress-bar{
+  width:100%;
+  height:9px;
+  background:#ede9fe;
+  border-radius:20px;
+  overflow:hidden;
+}
 
-    .task.done .task-name {
-      text-decoration: line-through;
-    }
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#7c3aed,#a855f7);
+  border-radius:20px;
+  transition:.3s;
+}
 
-    .check {
-      width: 24px;
-      height: 24px;
-      min-width: 24px;
-      border: 2px solid #a78bfa;
-      border-radius: 50%;
-      background: white;
-      padding: 0;
-    }
+/* STATS */
 
-    .task.done .check {
-      background: #7c3aed;
-      border-color: #7c3aed;
-    }
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:14px;
+}
 
-    .task-info {
-      flex: 1;
-      min-width: 0;
-    }
+.stat{
+  background:var(--card);
+  border-radius:18px;
+  padding:15px 8px;
+  text-align:center;
+  box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
 
-    .task-name {
-      font-weight: bold;
-      word-break: break-word;
-    }
+.stat-icon{
+  font-size:20px;
+  margin-bottom:5px;
+}
 
-    .task-meta {
-      font-size: 12px;
-      color: #737373;
-      margin-top: 4px;
-    }
+.stat strong{
+  display:block;
+  font-size:20px;
+}
 
-    .delete {
-      background: #fee2e2;
-      color: #dc2626;
-      padding: 8px 10px;
-    }
+.stat span{
+  color:var(--muted);
+  font-size:11px;
+}
 
-    .empty {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      text-align: center;
-      color: #737373;
-    }
+/* ADD TASK */
 
-    .log-box {
-      background: white;
-      padding: 15px;
-      border-radius: 18px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.06);
-    }
+.add-card{
+  background:var(--card);
+  border-radius:22px;
+  padding:15px;
+  margin-top:18px;
+  box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
 
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-      margin-bottom: 10px;
-    }
+.add-row{
+  display:flex;
+  gap:8px;
+}
 
-    .save-log {
-      background: #7c3aed;
-      color: white;
-      width: 100%;
-    }
+#taskInput{
+  flex:1;
+  min-width:0;
+  border:1px solid var(--border);
+  background:#fafafa;
+  padding:13px 14px;
+  border-radius:14px;
+  outline:none;
+}
 
-    .quote {
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #ede9fe;
-      color: #5b21b6;
-      text-align: center;
-      font-weight: bold;
-    }
+#taskInput:focus{
+  border-color:#a78bfa;
+}
 
-    .filters {
-      display: flex;
-      gap: 7px;
-      overflow-x: auto;
-      margin-bottom: 12px;
-    }
+.add-btn{
+  background:var(--primary);
+  color:white;
+  padding:0 18px;
+  border-radius:14px;
+  font-weight:700;
+}
 
-    .filter {
-      background: white;
-      color: #555;
-      white-space: nowrap;
-      padding: 9px 13px;
-    }
+/* SECTION */
 
-    .filter.active {
-      background: #7c3aed;
-      color: white;
-    }
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:23px 2px 11px;
+}
 
-    @media (max-width: 400px) {
-      .stats {
-        gap: 6px;
-      }
+.section-head h2{
+  font-size:19px;
+}
 
-      .stat {
-        padding: 12px 5px;
-      }
+.clear-btn{
+  color:var(--primary);
+  background:transparent;
+  font-size:12px;
+  font-weight:700;
+}
 
-      .stat strong {
-        font-size: 19px;
-      }
-    }
-  </style>
+/* FILTERS */
+
+.filters{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  margin-bottom:11px;
+}
+
+.filter{
+  background:white;
+  color:#666;
+  padding:8px 13px;
+  border-radius:20px;
+  white-space:nowrap;
+  font-size:12px;
+}
+
+.filter.active{
+  background:var(--primary);
+  color:white;
+}
+
+/* TASKS */
+
+.task{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:white;
+  padding:15px;
+  border-radius:18px;
+  margin-bottom:9px;
+  box-shadow:0 4px 15px rgba(0,0,0,.035);
+  transition:.2s;
+}
+
+.task.done{
+  opacity:.55;
+}
+
+.check{
+  width:25px;
+  height:25px;
+  min-width:25px;
+  border-radius:50%;
+  border:2px solid #c4b5fd;
+  background:white;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:14px;
+}
+
+.task.done .check{
+  background:var(--primary);
+  border-color:var(--primary);
+}
+
+.task-info{
+  flex:1;
+  min-width:0;
+}
+
+.task-name{
+  font-size:14px;
+  font-weight:700;
+  word-break:break-word;
+}
+
+.task-meta{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+}
+
+.task.done .task-name{
+  text-decoration:line-through;
+}
+
+.delete{
+  background:#fef2f2;
+  color:var(--red);
+  width:32px;
+  height:32px;
+  border-radius:10px;
+}
+
+/* EMPTY */
+
+.empty{
+  background:white;
+  padding:25px 15px;
+  border-radius:18px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* DAILY LOG */
+
+.log-card{
+  background:white;
+  border-radius:22px;
+  padding:15px;
+  box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
+
+#dailyLog{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  border:1px solid var(--border);
+  background:#fafafa;
+  border-radius:14px;
+  padding:13px;
+  outline:none;
+}
+
+.save-log{
+  width:100%;
+  margin-top:9px;
+  background:#ede9fe;
+  color:var(--primary-dark);
+  padding:12px;
+  border-radius:13px;
+  font-weight:700;
+}
+
+/* QUOTE */
+
+.quote{
+  margin-top:16px;
+  background:linear-gradient(135deg,#ede9fe,#f5f3ff);
+  color:#5b21b6;
+  padding:17px;
+  border-radius:20px;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+}
+
+/* MOBILE */
+
+@media(max-width:400px){
+
+  main{
+    padding:14px;
+  }
+
+  .hero{
+    padding:24px 17px 30px;
+  }
+
+  .hero h1{
+    font-size:27px;
+  }
+
+  .stats{
+    gap:7px;
+  }
+
+  .stat{
+    padding:13px 5px;
+  }
+
+}
+</style>
 </head>
 
 <body>
 
-  <header>
-    <h1>⚡ LevelUp</h1>
-    <p>Get things done. Level up your day.</p>
-  </header>
+<header class="hero">
 
-  <main>
+  <div class="hero-top">
+    <div class="logo">⚡ LevelUp</div>
+    <div class="date" id="todayDate"></div>
+  </div>
 
-    <div class="stats">
-      <div class="stat">
-        <strong id="totalCount">0</strong>
-        <span>Total</span>
-      </div>
+  <div class="greeting">YOUR DAY</div>
 
-      <div class="stat">
-        <strong id="completedCount">0</strong>
-        <span>Completed</span>
-      </div>
+  <h1>Lock in 👊</h1>
 
-      <div class="stat">
-        <strong id="streakCount">0</strong>
-        <span>Day Streak 🔥</span>
-      </div>
+  <div class="hero-sub">
+    Get your tasks done and level up.
+  </div>
+
+</header>
+
+
+<main>
+
+  <!-- PROGRESS -->
+
+  <div class="progress-card">
+
+    <div class="progress-top">
+      <div class="progress-title">Today's Progress</div>
+      <div class="progress-percent" id="progressPercent">0%</div>
     </div>
 
-    <div class="add-box">
-      <div class="input-row">
-        <input
-          id="taskInput"
-          type="text"
-          placeholder="Add a task..."
-          maxlength="120"
-        >
-
-        <button class="add-btn" onclick="addTask()">Add</button>
-      </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
     </div>
 
-    <div class="filters">
-      <button class="filter active" onclick="setFilter('all', this)">All</button>
-      <button class="filter" onclick="setFilter('active', this)">Active</button>
-      <button class="filter" onclick="setFilter('done', this)">Done</button>
+  </div>
+
+
+  <!-- STATS -->
+
+  <div class="stats">
+
+    <div class="stat">
+      <div class="stat-icon">🎯</div>
+      <strong id="totalCount">0</strong>
+      <span>Tasks</span>
     </div>
 
-    <div class="section-title">
-      <h2>Today's Tasks</h2>
-      <button class="clear-btn" onclick="clearCompleted()">Clear done</button>
+    <div class="stat">
+      <div class="stat-icon">✅</div>
+      <strong id="completedCount">0</strong>
+      <span>Done</span>
     </div>
 
-    <div id="taskList"></div>
-
-    <div class="section-title">
-      <h2>📝 Daily Log</h2>
+    <div class="stat">
+      <div class="stat-icon">🔥</div>
+      <strong id="streakCount">0</strong>
+      <span>Streak</span>
     </div>
 
-    <div class="log-box">
-      <textarea
-        id="dailyLog"
-        placeholder="How was your day? What did you do?"
-      ></textarea>
+  </div>
 
-      <button class="save-log" onclick="saveLog()">
-        Save Today's Log
+
+  <!-- ADD -->
+
+  <div class="add-card">
+
+    <div class="add-row">
+
+      <input
+        id="taskInput"
+        type="text"
+        placeholder="What needs to get done?"
+        maxlength="120"
+      >
+
+      <button class="add-btn" onclick="addTask()">
+        Add
       </button>
+
     </div>
 
-    <div class="quote" id="quote">
-      Small progress is still progress.
-    </div>
+  </div>
 
-  </main>
 
-  <script>
-    let tasks = JSON.parse(localStorage.getItem("levelupTasks")) || [];
-    let currentFilter = "all";
+  <!-- TASKS -->
 
-    const quotes = [
-      "Small progress is still progress.",
-      "You don't need to be perfect. Just start.",
-      "One task at a time.",
-      "Future you will thank you.",
-      "Lock in. You got this.",
-      "Consistency beats motivation.",
-      "Make today count."
-    ];
+  <div class="section-head">
 
-    function saveTasks() {
-      localStorage.setItem("levelupTasks", JSON.stringify(tasks));
-    }
+    <h2>Today's Tasks</h2>
 
-    function addTask() {
-      const input = document.getElementById("taskInput");
-      const name = input.value.trim();
+    <button
+      class="clear-btn"
+      onclick="clearCompleted()"
+    >
+      Clear completed
+    </button>
 
-      if (!name) return;
+  </div>
 
-      tasks.unshift({
-        id: Date.now(),
-        name: name,
-        completed: false,
-        date: getToday()
-      });
 
-      input.value = "";
-      saveTasks();
-      render();
-    }
+  <div class="filters">
 
-    function toggleTask(id) {
-      const task = tasks.find(t => t.id === id);
+    <button
+      class="filter active"
+      onclick="setFilter('all',this)"
+    >
+      All
+    </button>
 
-      if (!task) return;
+    <button
+      class="filter"
+      onclick="setFilter('active',this)"
+    >
+      Active
+    </button>
 
-      task.completed = !task.completed;
+    <button
+      class="filter"
+      onclick="setFilter('done',this)"
+    >
+      Completed
+    </button>
 
-      saveTasks();
-      render();
-    }
+  </div>
 
-    function deleteTask(id) {
-      tasks = tasks.filter(t => t.id !== id);
 
-      saveTasks();
-      render();
-    }
+  <div id="taskList"></div>
 
-    function clearCompleted() {
-      tasks = tasks.filter(t => !t.completed);
 
-      saveTasks();
-      render();
-    }
+  <!-- DAILY LOG -->
 
-    function setFilter(filter, button) {
-      currentFilter = filter;
+  <div class="section-head">
+    <h2>📝 Daily Log</h2>
+  </div>
 
-      document.querySelectorAll(".filter").forEach(btn => {
-        btn.classList.remove("active");
-      });
+  <div class="log-card">
 
-      button.classList.add("active");
+    <textarea
+      id="dailyLog"
+      placeholder="How was your day? What did you accomplish?"
+    ></textarea>
 
-      render();
-    }
+    <button
+      class="save-log"
+      onclick="saveLog()"
+    >
+      Save Today's Log
+    </button>
 
-    function getToday() {
-      const now = new Date();
+  </div>
 
-      return (
-        now.getFullYear() +
-        "-" +
-        String(now.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(now.getDate()).padStart(2, "0")
-      );
-    }
 
-    function render() {
-      const list = document.getElementById("taskList");
+  <!-- QUOTE -->
 
-      let visibleTasks = tasks;
+  <div class="quote" id="quote"></div>
 
-      if (currentFilter === "active") {
-        visibleTasks = tasks.filter(t => !t.completed);
-      }
+</main>
 
-      if (currentFilter === "done") {
-        visibleTasks = tasks.filter(t => t.completed);
-      }
 
-      if (visibleTasks.length === 0) {
-        list.innerHTML = `
-          <div class="empty">
-            ${
-              currentFilter === "done"
-                ? "No completed tasks yet 👀"
-                : "No tasks here. Add one above 👆"
-            }
-          </div>
-        `;
-      } else {
-        list.innerHTML = visibleTasks.map(task => `
-          <div class="task ${task.completed ? "done" : ""}">
+<script>
 
-            <button
-              class="check"
-              onclick="toggleTask(${task.id})"
-              aria-label="Complete task"
-            >
-              ${task.completed ? "✓" : ""}
-            </button>
+let tasks =
+  JSON.parse(
+    localStorage.getItem("levelupTasks")
+  ) || [];
 
-            <div class="task-info">
-              <div class="task-name">${escapeHTML(task.name)}</div>
-              <div class="task-meta">
-                ${task.completed ? "Completed ✓" : "Not completed"}
-              </div>
-            </div>
+let currentFilter = "all";
 
-            <button
-              class="delete"
-              onclick="deleteTask(${task.id})"
-              aria-label="Delete task"
-            >
-              🗑
-            </button>
 
-          </div>
-        `).join("");
-      }
+const quotes = [
+  "Small progress is still progress.",
+  "Lock in. You got this.",
+  "One task at a time.",
+  "Future you will thank you.",
+  "Consistency beats motivation.",
+  "Make today count.",
+  "Start now. Thank yourself later.",
+  "You don't need motivation. Just begin."
+];
 
-      updateStats();
-    }
 
-    function updateStats() {
-      const completed = tasks.filter(t => t.completed).length;
+/* DATE */
 
-      document.getElementById("totalCount").textContent = tasks.length;
-      document.getElementById("completedCount").textContent = completed;
+function getToday(){
 
-      calculateStreak();
-    }
+  const d = new Date();
 
-    function calculateStreak() {
-      let streak = Number(localStorage.getItem("levelupStreak")) || 0;
-      const lastDate = localStorage.getItem("levelupLastCompleted");
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth()+1).padStart(2,"0") +
+    "-" +
+    String(d.getDate()).padStart(2,"0")
+  );
+}
 
-      const hasCompletedToday = tasks.some(
-        task => task.completed && task.date === getToday()
-      );
 
-      if (hasCompletedToday && lastDate !== getToday()) {
-        streak++;
-        localStorage.setItem("levelupStreak", streak);
-        localStorage.setItem("levelupLastCompleted", getToday());
-      }
+function displayDate(){
 
-      document.getElementById("streakCount").textContent = streak;
-    }
+  const d = new Date();
 
-    function saveLog() {
-      const log = document.getElementById("dailyLog").value;
-
-      localStorage.setItem(
-        "levelupLog_" + getToday(),
-        log
-      );
-
-      alert("✅ Daily log saved!");
-    }
-
-    function loadLog() {
-      const saved = localStorage.getItem(
-        "levelupLog_" + getToday()
-      );
-
-      document.getElementById("dailyLog").value = saved || "";
-    }
-
-    function escapeHTML(text) {
-      const div = document.createElement("div");
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    document.getElementById("taskInput").addEventListener(
-      "keydown",
-      function(event) {
-        if (event.key === "Enter") {
-          addTask();
+  document.getElementById("todayDate")
+    .textContent =
+      d.toLocaleDateString(
+        undefined,
+        {
+          weekday:"short",
+          day:"numeric",
+          month:"short"
         }
-      }
+      );
+}
+
+
+/* SAVE */
+
+function saveTasks(){
+
+  localStorage.setItem(
+    "levelupTasks",
+    JSON.stringify(tasks)
+  );
+}
+
+
+/* ADD */
+
+function addTask(){
+
+  const input =
+    document.getElementById("taskInput");
+
+  const name =
+    input.value.trim();
+
+  if(!name) return;
+
+
+  tasks.unshift({
+
+    id:Date.now(),
+
+    name:name,
+
+    completed:false,
+
+    date:getToday()
+
+  });
+
+
+  input.value="";
+
+  saveTasks();
+
+  render();
+}
+
+
+/* TOGGLE */
+
+function toggleTask(id){
+
+  const task =
+    tasks.find(t => t.id === id);
+
+  if(!task) return;
+
+  task.completed =
+    !task.completed;
+
+  saveTasks();
+
+  render();
+}
+
+
+/* DELETE */
+
+function deleteTask(id){
+
+  tasks =
+    tasks.filter(
+      t => t.id !== id
     );
 
-    document.getElementById("quote").textContent =
-      quotes[Math.floor(Math.random() * quotes.length)];
+  saveTasks();
 
-    loadLog();
-    render();
-  </script>
+  render();
+}
+
+
+/* CLEAR */
+
+function clearCompleted(){
+
+  tasks =
+    tasks.filter(
+      t => !t.completed
+    );
+
+  saveTasks();
+
+  render();
+}
+
+
+/* FILTER */
+
+function setFilter(filter,button){
+
+  currentFilter = filter;
+
+  document
+    .querySelectorAll(".filter")
+    .forEach(b =>
+      b.classList.remove("active")
+    );
+
+  button.classList.add("active");
+
+  render();
+}
+
+
+/* STREAK */
+
+function updateStreak(){
+
+  let streak =
+    Number(
+      localStorage.getItem(
+        "levelupStreak"
+      )
+    ) || 0;
+
+
+  const last =
+    localStorage.getItem(
+      "levelupLastCompleted"
+    );
+
+
+  const completedToday =
+    tasks.some(
+      t =>
+        t.completed &&
+        t.date === getToday()
+    );
+
+
+  if(
+    completedToday &&
+    last !== getToday()
+  ){
+
+    streak++;
+
+    localStorage.setItem(
+      "levelupStreak",
+      streak
+    );
+
+    localStorage.setItem(
+      "levelupLastCompleted",
+      getToday()
+    );
+
+  }
+
+
+  document.getElementById(
+    "streakCount"
+  ).textContent = streak;
+}
+
+
+/* STATS */
+
+function updateStats(){
+
+  const total =
+    tasks.length;
+
+  const completed =
+    tasks.filter(
+      t => t.completed
+    ).length;
+
+
+  const percent =
+    total === 0
+      ? 0
+      : Math.round(
+          (completed / total) * 100
+        );
+
+
+  document.getElementById(
+    "totalCount"
+  ).textContent = total;
+
+
+  document.getElementById(
+    "completedCount"
+  ).textContent = completed;
+
+
+  document.getElementById(
+    "progressPercent"
+  ).textContent =
+    percent + "%";
+
+
+  document.getElementById(
+    "progressFill"
+  ).style.width =
+    percent + "%";
+
+
+  updateStreak();
+}
+
+
+/* RENDER */
+
+function render(){
+
+  const list =
+    document.getElementById(
+      "taskList"
+    );
+
+
+  let visible =
+    tasks;
+
+
+  if(
+    currentFilter === "active"
+  ){
+
+    visible =
+      tasks.filter(
+        t => !t.completed
+      );
+
+  }
+
+
+  if(
+    currentFilter === "done"
+  ){
+
+    visible =
+      tasks.filter(
+        t => t.completed
+      );
+
+  }
+
+
+  if(visible.length === 0){
+
+    list.innerHTML = `
+      <div class="empty">
+        ${
+          currentFilter === "done"
+            ? "No completed tasks yet 👀"
+            : "Nothing here yet. Add a task above 👆"
+        }
+      </div>
+    `;
+
+  }else{
+
+    list.innerHTML =
+      visible.map(task => `
+
+        <div class="task ${
+          task.completed
+            ? "done"
+            : ""
+        }">
+
+          <button
+            class="check"
+            onclick="toggleTask(${task.id})"
+          >
+            ${
+              task.completed
+                ? "✓"
+                : ""
+            }
+          </button>
+
+
+          <div class="task-info">
+
+            <div class="task-name">
+              ${escapeHTML(task.name)}
+            </div>
+
+            <div class="task-meta">
+              ${
+                task.completed
+                  ? "Completed ✓"
+                  : "In progress"
+              }
+            </div>
+
+          </div>
+
+
+          <button
+            class="delete"
+            onclick="deleteTask(${task.id})"
+          >
+            🗑
+          </button>
+
+        </div>
+
+      `).join("");
+
+  }
+
+
+  updateStats();
+}
+
+
+/* DAILY LOG */
+
+function saveLog(){
+
+  const text =
+    document.getElementById(
+      "dailyLog"
+    ).value;
+
+
+  localStorage.setItem(
+    "levelupLog_" + getToday(),
+    text
+  );
+
+
+  const button =
+    document.querySelector(
+      ".save-log"
+    );
+
+
+  button.textContent =
+    "Saved ✓";
+
+
+  setTimeout(() => {
+
+    button.textContent =
+      "Save Today's Log";
+
+  },1500);
+}
+
+
+function loadLog(){
+
+  const saved =
+    localStorage.getItem(
+      "levelupLog_" + getToday()
+    );
+
+
+  document.getElementById(
+    "dailyLog"
+  ).value =
+    saved || "";
+}
+
+
+/* SECURITY */
+
+function escapeHTML(text){
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text;
+
+  return div.innerHTML;
+}
+
+
+/* ENTER TO ADD */
+
+document
+  .getElementById("taskInput")
+  .addEventListener(
+    "keydown",
+    function(e){
+
+      if(e.key === "Enter"){
+        addTask();
+      }
+
+    }
+  );
+
+
+/* START */
+
+displayDate();
+
+loadLog();
+
+document.getElementById("quote")
+  .textContent =
+    quotes[
+      Math.floor(
+        Math.random() *
+        quotes.length
+      )
+    ];
+
+render();
+
+</script>
 
 </body>
 </html>
