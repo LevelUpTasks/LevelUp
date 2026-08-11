@@ -28,6 +28,7 @@
         .task-check.done { background: #7c3aed; border-color: #7c3aed; }
         .task-text { flex: 1; font-size: 15px; font-weight: 500; pointer-events: none; }
         .task-text.done { text-decoration: line-through; color: #6b7b9a; }
+        .task-text.overdue { color: #ef4444; }
         .task-edit-btn { background: transparent; border: none; color: #4b5a77; cursor: pointer; font-size: 16px; padding: 4px 8px; }
         .task-edit-btn:hover { color: #7c3aed; }
         .task-delete-btn { background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 4px 8px; }
@@ -81,8 +82,11 @@
         .calendar-day .day-dot.task { background: #f59e0b; }
         .calendar-day .day-dot.homework { background: #ef4444; }
         .calendar-day .day-dot.event { background: #8b5cf6; }
+        .calendar-day .day-dot.reminder { background: #f472b6; }
         .calendar-day.selected { border: 2px solid #7c3aed; background: #1f2a3f; }
         .calendar-day.has-events { border: 1px solid #7c3aed; }
+        .calendar-day.overdue { background: #7f1d1d; border: 2px solid #ef4444; }
+        .calendar-day.overdue .day-number::after { content: '❗'; font-size: 10px; margin-left: 2px; }
 
         .calendar-events { margin-top: 16px; max-height: 300px; overflow-y: auto; }
         .calendar-events .event-item { background: #1a2332; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #7c3aed; }
@@ -92,6 +96,7 @@
         .event-item.task-event { border-left-color: #f59e0b; }
         .event-item.homework-event { border-left-color: #ef4444; }
         .event-item.event-event { border-left-color: #8b5cf6; }
+        .event-item.reminder-event { border-left-color: #f472b6; }
         .event-item.done-event { opacity: 0.5; text-decoration: line-through; }
         .no-events { color: #6b7b9a; text-align: center; padding: 20px 0; font-size: 14px; }
 
@@ -126,6 +131,8 @@
         .reminder-item { background: #1a2332; border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
         .reminder-item .reminder-text { flex: 1; font-size: 14px; }
         .reminder-item .reminder-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 16px; }
+        .reminder-item .reminder-due { color: #6b7b9a; font-size: 12px; }
+        .reminder-item.overdue { border-left: 3px solid #ef4444; background: #1f0a0a; }
 
         /* Sports highlights */
         .highlight-area { background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 12px; margin-top: 8px; }
@@ -142,6 +149,10 @@
         .log-entry .log-date { color: #7c3aed; font-weight: 600; font-size: 14px; }
         .log-entry .log-text { margin-top: 6px; color: #d0dbe8; }
         .log-entry .log-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 18px; padding: 4px 8px; }
+
+        /* Notification badge */
+        .notification-badge { background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; margin-left: 4px; }
+        .overdue-count { background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; margin-left: 6px; }
 
         .date-display { color: #9aabcf; font-size: 13px; }
     </style>
@@ -189,6 +200,19 @@
     <div id="page-study" class="page">
         <div class="card"><div class="card-title">📖 Customize study blocks</div><div id="studyScheduleDisplay"></div></div>
         <div class="card"><div class="card-title">📚 Subject hub</div><div id="subjectHubContainer"></div></div>
+    </div>
+
+    <!-- Reminders Page -->
+    <div id="page-reminders" class="page">
+        <div class="card">
+            <div class="card-title">🔔 All Reminders</div>
+            <div id="allRemindersList"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;">
+                <input type="text" id="newReminderInput" placeholder="Add reminder..." style="flex:1;background:#0b1120;border:1px solid #2a3649;border-radius:12px;padding:10px;color:white;font-size:14px;">
+                <input type="date" id="newReminderDate" style="background:#0b1120;border:1px solid #2a3649;border-radius:12px;padding:10px;color:white;font-size:14px;">
+                <button class="btn btn-sm btn-success" id="addReminderBtn" style="width:auto;margin:0;">+</button>
+            </div>
+        </div>
     </div>
 
     <!-- Sports Page -->
@@ -285,6 +309,7 @@
         <button class="nav-item active" data-page="today"><i>🏠</i>Today</button>
         <button class="nav-item" data-page="todo"><i>✅</i>To Do</button>
         <button class="nav-item" data-page="study"><i>📚</i>Study</button>
+        <button class="nav-item" data-page="reminders"><i>🔔</i>Reminders</button>
         <button class="nav-item" data-page="calendar"><i>📅</i>Calendar</button>
         <button class="nav-item" data-page="sports"><i>⚽</i>Sports</button>
         <button class="nav-item" data-page="log"><i>📝</i>Log</button>
@@ -295,10 +320,9 @@
 // DATA
 const DATA = {
     xp: 0, level: 1, streak: 0, lastDate: '',
-    tasks: [], goals: [], homework: [], events: [],
+    tasks: [], goals: [], homework: [], events: [], reminders: [],
     routine: [], routineLabels: [],
     studySchedule: {},
-    reminders: ['Study at 5 PM', 'Stretch before bed', 'Pack school bag', 'Do Duolingo'],
     quotes: [], logs: [],
     tennis: { day: 'saturday', schedule: 'Sat/Sun 4:00-6:00 PM training' },
     soccer: { schedule: 'Wed 3:30-5:30 training, Sat 11:30-2:00 game' },
@@ -330,6 +354,11 @@ function initData() {
         { subject: 'Maths', task: 'Chapter 5 exercises', due: '2026-08-12', done: false },
         { subject: 'English', task: 'Essay draft', due: '2026-08-14', done: false },
         { subject: 'Science', task: 'Lab report', due: '2026-08-16', done: false }
+    ];
+    if(!DATA.reminders.length) DATA.reminders = [
+        { text: 'Wash the car', due: '2026-08-15' },
+        { text: 'Call mom', due: '2026-08-16' },
+        { text: 'Buy groceries', due: '2026-08-18' }
     ];
     if(!DATA.events) DATA.events = [];
     if(!DATA.soccerHighlights) DATA.soccerHighlights = [];
@@ -380,23 +409,93 @@ function formatDate(dateStr) {
     return `${day}/${month} ${days[d.getDay()]}`;
 }
 
+function isOverdue(dateStr) {
+    if(!dateStr) return false;
+    return dateStr < today();
+}
+
 function addXP(amount) { 
     DATA.xp += amount; 
     while(DATA.xp >= 100) { DATA.xp -= 100; DATA.level++; }
     save(); renderAll();
 }
 
+// ===== NOTIFICATIONS =====
+function checkNotifications() {
+    const overdueItems = [];
+    const todayStr = today();
+    
+    // Check goals
+    DATA.goals.forEach(g => {
+        if(g.due && g.due < todayStr && !g.done) {
+            overdueItems.push({ text: g.text, type: 'Goal', due: g.due });
+        }
+    });
+    
+    // Check tasks
+    DATA.tasks.forEach(t => {
+        if(t.due && t.due < todayStr && !t.done) {
+            overdueItems.push({ text: t.text, type: 'Task', due: t.due });
+        }
+    });
+    
+    // Check homework
+    DATA.homework.forEach(h => {
+        if(h.due && h.due < todayStr && !h.done) {
+            overdueItems.push({ text: `${h.subject}: ${h.task}`, type: 'Homework', due: h.due });
+        }
+    });
+    
+    // Check reminders
+    DATA.reminders.forEach(r => {
+        if(r.due && r.due < todayStr) {
+            overdueItems.push({ text: r.text, type: 'Reminder', due: r.due });
+        }
+    });
+    
+    // Send notification if there are overdue items and browser supports it
+    if (overdueItems.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+        const count = overdueItems.length;
+        const firstItem = overdueItems[0];
+        const message = `${count} overdue ${count === 1 ? 'item' : 'items'}: ${firstItem.text}`;
+        new Notification('⚠️ Overdue Tasks Alert!', {
+            body: message,
+            icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"%3E%3Crect width="512" height="512" rx="80" fill="%237c3aed"/%3E%3Cpath d="M256 80L128 208l128 128 128-128L256 80z" fill="%23fff" opacity=".9"/%3E%3Cpath d="M256 304L128 432l128 128 128-128-256-128z" fill="%23fff" opacity=".6"/%3E%3C/svg%3E'
+        });
+    }
+    
+    // Update badge
+    updateBadge(overdueItems.length);
+}
+
+function updateBadge(count) {
+    // Update browser tab badge if supported
+    if (navigator.setAppBadge) {
+        if (count > 0) {
+            navigator.setAppBadge(count);
+        } else {
+            navigator.clearAppBadge();
+        }
+    }
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
 let currentDate = new Date();
 let selectedDate = new Date();
 
 function renderAll() {
-    renderToday(); renderTodo(); renderStudy(); renderSports(); renderLog(); renderCalendar(); renderImportStats();
+    renderToday(); renderTodo(); renderStudy(); renderReminders(); renderSports(); renderLog(); renderCalendar(); renderImportStats();
     document.getElementById('xpDisplay').textContent = DATA.xp;
     document.getElementById('levelDisplay').textContent = DATA.level;
     document.getElementById('streakDisplay').textContent = DATA.streak;
     document.getElementById('levelProgressText').textContent = `${DATA.xp} / 100 XP`;
     document.getElementById('levelProgressFill').style.width = Math.floor((DATA.xp/100)*100)+'%';
     document.getElementById('dateDisplay').textContent = formatDate(today());
+    checkNotifications();
 }
 
 function renderToday() {
@@ -417,8 +516,14 @@ function renderToday() {
         <div class="schedule-block"><div class="block-label">🔹 Block 3</div><div class="block-subject">${sched.block3}</div></div>
     `;
     
-    const remindersHtml = DATA.reminders.map(r => `<div class="reminder-item"><span class="reminder-text">• ${r}</span><button class="reminder-delete" data-reminder="${r}">✕</button></div>`).join('');
-    document.getElementById('upcomingReminders').innerHTML = remindersHtml || 'No reminders';
+    // Show upcoming reminders (next 5)
+    const upcomingReminders = DATA.reminders
+        .filter(r => r.due && r.due >= today())
+        .sort((a,b) => a.due.localeCompare(b.due))
+        .slice(0, 5);
+    
+    const remindersHtml = upcomingReminders.map(r => `<div class="reminder-item"><span class="reminder-text">• ${r.text}</span><span class="reminder-due">📅 ${formatDate(r.due)}</span></div>`).join('');
+    document.getElementById('upcomingReminders').innerHTML = remindersHtml || 'No upcoming reminders';
     
     const q = DATA.quotes[Math.floor(Math.random()*DATA.quotes.length)] || 'Small daily improvements lead to stunning results.';
     document.getElementById('dailyQuoteDisplay').textContent = '“'+q+'”';
@@ -432,21 +537,21 @@ function renderTodo() {
     document.getElementById('bigGoalsList').innerHTML = DATA.goals.map((g,i)=>`
         <div class="task-item" data-action="goal" data-index="${i}">
             <div class="task-check ${g.done?'done':''}">${g.done?'✓':''}</div>
-            <div class="task-text ${g.done?'done':''}">${g.text} ${g.due ? '📅 '+formatDate(g.due) : ''}</div>
+            <div class="task-text ${g.done?'done':''} ${isOverdue(g.due) && !g.done ? 'overdue' : ''}">${g.text} ${g.due ? '📅 '+formatDate(g.due) : ''} ${isOverdue(g.due) && !g.done ? '❗' : ''}</div>
         </div>
     `).join('') || '<div style="color:#6b7b9a;">No big goals</div>';
 
     document.getElementById('dailyTasksList').innerHTML = DATA.tasks.map((t,i)=>`
         <div class="task-item" data-action="task" data-index="${i}">
             <div class="task-check ${t.done?'done':''}">${t.done?'✓':''}</div>
-            <div class="task-text ${t.done?'done':''}">${t.text} ${t.due ? '📅 '+formatDate(t.due) : ''}</div>
+            <div class="task-text ${t.done?'done':''} ${isOverdue(t.due) && !t.done ? 'overdue' : ''}">${t.text} ${t.due ? '📅 '+formatDate(t.due) : ''} ${isOverdue(t.due) && !t.done ? '❗' : ''}</div>
         </div>
     `).join('') || '<div style="color:#6b7b9a;">No tasks</div>';
 
     document.getElementById('homeworkList').innerHTML = DATA.homework.map((h,i)=>`
         <div class="task-item" data-action="homework" data-index="${i}">
             <div class="task-check ${h.done?'done':''}">${h.done?'✓':''}</div>
-            <div class="task-text ${h.done?'done':''}">${h.subject}: ${h.task} ${h.due ? '📅 '+formatDate(h.due) : ''}</div>
+            <div class="task-text ${h.done?'done':''} ${isOverdue(h.due) && !h.done ? 'overdue' : ''}">${h.subject}: ${h.task} ${h.due ? '📅 '+formatDate(h.due) : ''} ${isOverdue(h.due) && !h.done ? '❗' : ''}</div>
         </div>
     `).join('') || '<div style="color:#6b7b9a;">No homework</div>';
 }
@@ -502,6 +607,25 @@ function renderStudy() {
         `;
     });
     document.getElementById('subjectHubContainer').innerHTML = hubHtml;
+}
+
+function renderReminders() {
+    const allReminders = DATA.reminders
+        .sort((a,b) => {
+            if (!a.due) return 1;
+            if (!b.due) return -1;
+            return a.due.localeCompare(b.due);
+        });
+    
+    const html = allReminders.map((r,i) => `
+        <div class="reminder-item ${isOverdue(r.due) ? 'overdue' : ''}">
+            <span class="reminder-text">${r.text}</span>
+            <span class="reminder-due">📅 ${r.due ? formatDate(r.due) : 'No date'} ${isOverdue(r.due) ? '❗' : ''}</span>
+            <button class="reminder-delete" data-reminder-index="${i}">✕</button>
+        </div>
+    `).join('');
+    
+    document.getElementById('allRemindersList').innerHTML = html || '<div style="color:#6b7b9a;">No reminders</div>';
 }
 
 window.updateStudyBlock = function(blockNum, value) {
@@ -566,12 +690,13 @@ function renderImportStats() {
 // ===== CALENDAR =====
 function getEventsForDate(dateStr) {
     const events = [];
-    DATA.goals.forEach(g => { if(g.due === dateStr) events.push({ text: g.text, type: 'goal', done: g.done }); });
-    DATA.tasks.forEach(t => { if(t.due === dateStr) events.push({ text: t.text, type: 'task', done: t.done }); });
-    DATA.homework.forEach(h => { if(h.due === dateStr) events.push({ text: `${h.subject}: ${h.task}`, type: 'homework', done: h.done }); });
+    DATA.goals.forEach(g => { if(g.due === dateStr) events.push({ text: g.text, type: 'goal', done: g.done, overdue: isOverdue(g.due) && !g.done }); });
+    DATA.tasks.forEach(t => { if(t.due === dateStr) events.push({ text: t.text, type: 'task', done: t.done, overdue: isOverdue(t.due) && !t.done }); });
+    DATA.homework.forEach(h => { if(h.due === dateStr) events.push({ text: `${h.subject}: ${h.task}`, type: 'homework', done: h.done, overdue: isOverdue(h.due) && !h.done }); });
+    DATA.reminders.forEach(r => { if(r.due === dateStr) events.push({ text: r.text, type: 'reminder', done: false, overdue: isOverdue(r.due) }); });
     if(DATA.events) {
         DATA.events.forEach(e => {
-            if(e.date === dateStr) events.push({ text: e.title, type: 'event', done: false });
+            if(e.date === dateStr) events.push({ text: e.title, type: 'event', done: false, overdue: false });
         });
     }
     return events;
@@ -586,7 +711,7 @@ function showEventsForDate(dateStr) {
     }
     container.innerHTML = events.map(e => `
         <div class="event-item ${e.type}-event ${e.done?'done-event':''}">
-            <span class="event-text">${e.done ? '✅' : '○'} ${e.text}</span>
+            <span class="event-text">${e.done ? '✅' : '○'} ${e.text} ${e.overdue ? '❗' : ''}</span>
             <span class="event-type">${e.type}</span>
         </div>
     `).join('');
@@ -612,9 +737,11 @@ function renderCalendar() {
         const isToday = dateStr === todayStr;
         const events = getEventsForDate(dateStr);
         const hasEvents = events.length > 0;
+        const hasOverdue = events.some(e => e.overdue);
+        const isOverdueDay = dateStr < todayStr && hasOverdue;
 
         html += `
-            <div class="calendar-day ${isToday?'today':''} ${hasEvents?'has-events':''}" data-date="${dateStr}">
+            <div class="calendar-day ${isToday?'today':''} ${hasEvents?'has-events':''} ${isOverdueDay?'overdue':''}" data-date="${dateStr}">
                 <div class="day-number">${day}</div>
                 ${hasEvents ? `<div class="day-dots">${events.slice(0,2).map(e => `<div class="day-dot ${e.type}"></div>`).join('')}</div>` : ''}
             </div>
@@ -652,194 +779,51 @@ function renderCalendar() {
     }
 }
 
-// ===== FIXED ICS PARSER - Correctly handles timezone offsets =====
+// ===== ICS PARSER =====
 function parseICS(text) {
     const events = [];
     const lines = text.split(/\r?\n/);
     let currentEvent = null;
     let inEvent = false;
-    let multilineField = '';
-    let multilineValue = '';
     
     for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        
-        // Handle line folding
-        if (line.startsWith(' ') || line.startsWith('\t')) {
-            if (multilineField) {
-                multilineValue += line.trim();
-                continue;
-            }
-            continue;
-        }
-        
-        // Save multiline value
-        if (multilineField && !line.startsWith(' ') && !line.startsWith('\t')) {
-            if (inEvent && currentEvent) {
-                if (multilineField === 'SUMMARY') {
-                    currentEvent.summary = multilineValue;
-                } else if (multilineField === 'DESCRIPTION') {
-                    currentEvent.description = multilineValue;
-                }
-            }
-            multilineField = '';
-            multilineValue = '';
-        }
-        
-        line = line.trim();
+        let line = lines[i].trim();
+        if (line.startsWith(' ') || line.startsWith('\t')) continue;
         
         if (line === 'BEGIN:VEVENT') {
             inEvent = true;
             currentEvent = {};
-            multilineField = '';
-            multilineValue = '';
         } else if (line === 'END:VEVENT') {
             if (currentEvent && currentEvent.dtstart) {
                 let dateStr = currentEvent.dtstart;
-                
-                // Handle timezone offsets
-                // Format: 20240812T100000Z (UTC)
-                // Format: 20240812T100000-0500 (with offset)
-                // Format: 20240812T100000 (no timezone)
-                
-                let datePart = dateStr;
-                let timePart = '00:00:00';
-                let offsetHours = 0;
-                let offsetMinutes = 0;
-                
-                // Extract date and time
-                if (dateStr.includes('T')) {
-                    const parts = dateStr.split('T');
-                    datePart = parts[0];
-                    let timeWithOffset = parts[1] || '';
-                    
-                    // Check for timezone offset
-                    const offsetMatch = timeWithOffset.match(/(\d{6})([+-])(\d{2})(\d{2})?/);
-                    if (offsetMatch) {
-                        timePart = offsetMatch[1].substring(0,2) + ':' + offsetMatch[1].substring(2,4) + ':' + offsetMatch[1].substring(4,6);
-                        const sign = offsetMatch[2] === '+' ? 1 : -1;
-                        offsetHours = parseInt(offsetMatch[3]) * sign;
-                        offsetMinutes = parseInt(offsetMatch[4] || '00') * sign;
-                    } else if (timeWithOffset.endsWith('Z')) {
-                        // UTC time
-                        timePart = timeWithOffset.substring(0,2) + ':' + timeWithOffset.substring(2,4) + ':' + timeWithOffset.substring(4,6);
-                        offsetHours = 0;
-                        offsetMinutes = 0;
-                    } else {
-                        // No timezone, assume local
-                        timePart = timeWithOffset.substring(0,2) + ':' + timeWithOffset.substring(2,4) + ':' + timeWithOffset.substring(4,6);
-                        offsetHours = 0;
-                        offsetMinutes = 0;
-                    }
+                if (dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+                if (dateStr.length === 15 && dateStr.includes('T')) {
+                    dateStr = dateStr.substring(0, 8);
+                    dateStr = dateStr.substring(0,4) + '-' + dateStr.substring(4,6) + '-' + dateStr.substring(6,8);
                 }
-                
-                // Parse the date
-                let year, month, day;
-                if (datePart.length === 8 && !datePart.includes('-')) {
-                    year = parseInt(datePart.substring(0,4));
-                    month = parseInt(datePart.substring(4,6)) - 1;
-                    day = parseInt(datePart.substring(6,8));
-                } else if (datePart.includes('-')) {
-                    const parts = datePart.split('-');
-                    year = parseInt(parts[0]);
-                    month = parseInt(parts[1]) - 1;
-                    day = parseInt(parts[2]);
-                } else {
-                    continue; // Invalid date format
+                if (dateStr.length === 8 && !dateStr.includes('-')) {
+                    dateStr = dateStr.substring(0,4) + '-' + dateStr.substring(4,6) + '-' + dateStr.substring(6,8);
                 }
-                
-                // Create date object
-                const eventDate = new Date(year, month, day);
-                
-                // Apply timezone offset if not UTC
-                if (!dateStr.endsWith('Z')) {
-                    // If there's a time component, adjust for offset
-                    if (dateStr.includes('T')) {
-                        // Parse time
-                        const timeParts = timePart.split(':');
-                        let hours = parseInt(timeParts[0]) || 0;
-                        let minutes = parseInt(timeParts[1]) || 0;
-                        
-                        // Apply offset (convert to local time)
-                        eventDate.setHours(hours - offsetHours);
-                        eventDate.setMinutes(minutes - offsetMinutes);
-                    }
-                }
-                
-                // Get the date in YYYY-MM-DD format
-                const yearStr = eventDate.getFullYear();
-                const monthStr = String(eventDate.getMonth() + 1).padStart(2, '0');
-                const dayStr = String(eventDate.getDate()).padStart(2, '0');
-                const finalDateStr = `${yearStr}-${monthStr}-${dayStr}`;
-                
                 events.push({
                     title: currentEvent.summary || 'Untitled Event',
-                    date: finalDateStr,
-                    description: currentEvent.description || '',
-                    originalDate: dateStr
+                    date: dateStr,
+                    description: currentEvent.description || ''
                 });
             }
             inEvent = false;
             currentEvent = null;
-            multilineField = '';
-            multilineValue = '';
         } else if (inEvent && currentEvent) {
-            if (line.includes(':')) {
-                const colonIndex = line.indexOf(':');
-                let key = line.substring(0, colonIndex).trim();
-                let value = line.substring(colonIndex + 1).trim();
-                
-                if (key.includes(';')) {
-                    key = key.split(';')[0];
-                }
-                
-                if (key === 'SUMMARY') {
-                    if (value.endsWith('=')) {
-                        multilineField = 'SUMMARY';
-                        multilineValue = value;
-                    } else {
-                        currentEvent.summary = value;
-                    }
-                } else if (key === 'DESCRIPTION') {
-                    if (value.endsWith('=')) {
-                        multilineField = 'DESCRIPTION';
-                        multilineValue = value;
-                    } else {
-                        currentEvent.description = value;
-                    }
-                } else if (key === 'DTSTART' || key === 'DTSTART;VALUE=DATE') {
-                    currentEvent.dtstart = value;
-                }
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > 0) {
+                const key = line.substring(0, colonIndex).trim();
+                const value = line.substring(colonIndex + 1).trim();
+                if (key === 'SUMMARY') currentEvent.summary = value;
+                else if (key === 'DTSTART') currentEvent.dtstart = value;
+                else if (key === 'DESCRIPTION') currentEvent.description = value;
             }
         }
     }
-    
     return events;
-}
-// Debug function to see what's in your ICS file
-function debugICS(text) {
-    console.log('=== ICS FILE DEBUG ===');
-    console.log('File length:', text.length, 'characters');
-    
-    // Count VEVENT blocks
-    const veventCount = (text.match(/BEGIN:VEVENT/g) || []).length;
-    console.log('Number of VEVENT blocks found:', veventCount);
-    
-    // Find all DTSTART lines
-    const dtstartMatches = text.match(/DTSTART[^\n]*/g) || [];
-    console.log('DTSTART lines found:', dtstartMatches.length);
-    dtstartMatches.forEach((line, i) => {
-        console.log(`  DTSTART ${i+1}:`, line);
-    });
-    
-    // Find all SUMMARY lines
-    const summaryMatches = text.match(/SUMMARY[^\n]*/g) || [];
-    console.log('SUMMARY lines found:', summaryMatches.length);
-    summaryMatches.forEach((line, i) => {
-        console.log(`  SUMMARY ${i+1}:`, line);
-    });
-    
-    console.log('=== END DEBUG ===');
 }
 
 // ===== EVENT DELEGATION =====
@@ -881,6 +865,15 @@ document.addEventListener('click', function(e) {
         }
     }
     
+    // Reminder delete
+    if(e.target.classList.contains('reminder-delete')) {
+        const index = parseInt(e.target.dataset.reminderIndex);
+        if(confirm('Delete this reminder?')) {
+            DATA.reminders.splice(index, 1);
+            save(); renderAll();
+        }
+    }
+    
     // Log delete
     if(e.target.classList.contains('log-delete')) {
         const index = parseInt(e.target.dataset.logIndex);
@@ -888,13 +881,6 @@ document.addEventListener('click', function(e) {
             DATA.logs.splice(index, 1);
             save(); renderAll();
         }
-    }
-    
-    // Reminder delete
-    if(e.target.classList.contains('reminder-delete')) {
-        const reminder = e.target.dataset.reminder;
-        DATA.reminders = DATA.reminders.filter(r => r !== reminder);
-        save(); renderAll();
     }
     
     // Subject tab toggle
@@ -976,6 +962,24 @@ document.getElementById('editStudyBtn')?.addEventListener('click', function() {
     document.querySelector('[data-page="study"]').classList.add('active');
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('page-study').classList.add('active');
+});
+
+// Add Reminder
+document.getElementById('addReminderBtn')?.addEventListener('click', function() {
+    const input = document.getElementById('newReminderInput');
+    const dateInput = document.getElementById('newReminderDate');
+    const text = input.value.trim();
+    const due = dateInput.value || null;
+    if(text) {
+        DATA.reminders.push({ text, due });
+        input.value = '';
+        dateInput.value = '';
+        save(); renderAll();
+    }
+});
+
+document.getElementById('newReminderInput')?.addEventListener('keypress', function(e) {
+    if(e.key === 'Enter') document.getElementById('addReminderBtn').click();
 });
 
 document.getElementById('addGoalBtn')?.addEventListener('click', function() {
