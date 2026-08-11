@@ -1,1239 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
-    <link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>LevelUp</title>
-  
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background: #0b1120; color: #e8edf5; min-height: 100vh; padding: 0 0 80px 0; touch-action: pan-y; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #1a2332; }
-        ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 12px; }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="description" content="LevelUp To-Do">
 
-        .app { max-width: 480px; margin: 0 auto; padding: 16px 16px 80px; }
-        .card { background: #141d2b; border-radius: 24px; padding: 18px 16px; margin-bottom: 16px; border: 1px solid #2a3649; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
-        .card-title { font-size: 14px; font-weight: 600; color: #a0b3d9; letter-spacing: 0.3px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  <title>LevelUp To-Do</title>
 
-        .today-header { display: flex; justify-content: space-between; align-items: center; }
-        .xp-level { background: #1f2a3f; padding: 6px 16px; border-radius: 40px; font-size: 14px; font-weight: 600; color: #c4b5fd; }
-        .streak { color: #fbbf24; font-weight: 600; margin-left: 12px; }
-        .progress-bar { height: 8px; background: #28344a; border-radius: 40px; margin: 12px 0; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #a78bfa); border-radius: 40px; width: 0%; transition: width 0.4s; }
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .task-item { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #1f2a3f; cursor: pointer; }
-        .task-item:last-child { border: none; }
-        .task-check { width: 26px; height: 26px; border-radius: 40px; border: 2px solid #4b5a77; background: transparent; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; transition: 0.15s; flex-shrink: 0; cursor: pointer; }
-        .task-check.done { background: #7c3aed; border-color: #7c3aed; }
-        .task-text { flex: 1; font-size: 15px; font-weight: 500; pointer-events: none; }
-        .task-text.done { text-decoration: line-through; color: #6b7b9a; }
-        .task-edit-btn { background: transparent; border: none; color: #4b5a77; cursor: pointer; font-size: 16px; padding: 4px 8px; }
-        .task-edit-btn:hover { color: #7c3aed; }
-        .task-delete-btn { background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 4px 8px; }
-        .task-delete-btn:hover { color: #dc2626; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f5ff;
+      color: #171717;
+      min-height: 100vh;
+    }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0f1729; border-top: 1px solid #28344a; display: flex; justify-content: space-around; padding: 10px 0 16px; max-width: 480px; margin: 0 auto; border-radius: 30px 30px 0 0; backdrop-filter: blur(6px); z-index: 100; }
-        .nav-item { text-align: center; color: #7a8aa8; font-size: 12px; padding: 4px 10px; border-radius: 40px; background: transparent; border: none; font-weight: 500; cursor: pointer; }
-        .nav-item.active { color: #c4b5fd; background: #1f2a3f; padding: 4px 16px; }
-        .nav-item i { display: block; font-size: 24px; margin-bottom: 2px; font-style: normal; }
+    header {
+      background: #7c3aed;
+      color: white;
+      padding: 22px 18px;
+      border-radius: 0 0 24px 24px;
+    }
 
-        .page { display: none; }
-        .page.active { display: block; }
+    header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
 
-        .btn { background: #7c3aed; border: none; color: white; padding: 12px 20px; border-radius: 60px; font-weight: 600; font-size: 15px; width: 100%; margin: 8px 0; cursor: pointer; }
-        .btn-outline { background: transparent; border: 1.5px solid #4b5a77; color: #d0dbe8; }
-        .btn-sm { padding: 8px 14px; width: auto; font-size: 13px; }
-        .btn-danger { background: #ef4444; }
-        .btn-success { background: #10b981; }
-        .btn-warning { background: #f59e0b; }
+    header p {
+      opacity: 0.85;
+    }
 
-        .flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .quote-text { font-size: 18px; font-weight: 400; line-height: 1.4; color: #d0dbe8; padding: 8px 0; }
-        .schedule-block { background: #1a2332; border-radius: 20px; padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid #7c3aed; }
-        .schedule-block .block-label { font-weight: 600; color: #a0b3d9; font-size: 13px; }
-        .schedule-block .block-subject { font-size: 16px; margin-top: 4px; }
-        .subject-select { background: #0b1120; color: white; border: 1px solid #2a3649; border-radius: 12px; padding: 8px 12px; font-size: 14px; width: 100%; margin-top: 6px; cursor: pointer; }
-        .subject-select option { background: #141d2b; }
+    main {
+      max-width: 650px;
+      margin: auto;
+      padding: 18px;
+      padding-bottom: 90px;
+    }
 
-        .add-routine-row { display: flex; gap: 10px; margin-top: 12px; }
-        .add-routine-row input { flex: 1; background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 10px; color: white; font-size: 14px; }
-        .add-routine-row input::placeholder { color: #5f7190; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
 
-        /* Calendar Styles */
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .calendar-header button { background: transparent; border: none; color: #a0b3d9; font-size: 20px; cursor: pointer; padding: 8px 12px; border-radius: 12px; }
-        .calendar-header button:hover { background: #1a2332; color: #c4b5fd; }
-        .calendar-header .month-year { font-size: 18px; font-weight: 600; color: #e8edf5; }
-        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
-        .calendar-weekdays div { text-align: center; color: #6b7b9a; font-size: 12px; font-weight: 600; padding: 4px 0; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; background: #1a2332; cursor: pointer; transition: 0.2s; min-height: 44px; position: relative; padding: 2px; }
-        .calendar-day:hover { background: #1f2a3f; }
-        .calendar-day.other-month { opacity: 0.3; }
-        .calendar-day.today { background: #7c3aed; color: white; font-weight: 600; }
-        .calendar-day.today:hover { background: #6d28d9; }
-        .calendar-day .day-number { font-size: 15px; font-weight: 500; }
-        .calendar-day .day-dots { display: flex; gap: 2px; margin-top: 2px; }
-        .calendar-day .day-dot { width: 5px; height: 5px; border-radius: 50%; background: #7c3aed; }
-        .calendar-day .day-dot.goal { background: #10b981; }
-        .calendar-day .day-dot.task { background: #f59e0b; }
-        .calendar-day .day-dot.homework { background: #ef4444; }
-        .calendar-day .day-dot.event { background: #8b5cf6; }
-        .calendar-day.selected { border: 2px solid #7c3aed; background: #1f2a3f; }
-        .calendar-day.has-events { border: 1px solid #7c3aed; }
+    .stat {
+      background: white;
+      border-radius: 16px;
+      padding: 15px 8px;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(0,0,0,.06);
+    }
 
-        .calendar-events { margin-top: 16px; max-height: 300px; overflow-y: auto; }
-        .calendar-events .event-item { background: #1a2332; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #7c3aed; }
-        .calendar-events .event-item .event-text { flex: 1; font-size: 14px; }
-        .calendar-events .event-item .event-type { font-size: 11px; padding: 2px 10px; border-radius: 20px; background: #1f2a3f; color: #a0b3d9; }
-        .event-item.goal-event { border-left-color: #10b981; }
-        .event-item.task-event { border-left-color: #f59e0b; }
-        .event-item.homework-event { border-left-color: #ef4444; }
-        .event-item.event-event { border-left-color: #8b5cf6; }
-        .event-item.done-event { opacity: 0.5; text-decoration: line-through; }
-        .no-events { color: #6b7b9a; text-align: center; padding: 20px 0; font-size: 14px; }
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      color: #7c3aed;
+    }
 
-        .ics-import-area { border: 2px dashed #2a3649; border-radius: 16px; padding: 20px; text-align: center; margin: 12px 0; transition: 0.3s; cursor: pointer; }
-        .ics-import-area.dragover { border-color: #7c3aed; background: #1a2332; }
-        .ics-import-area input[type="file"] { display: none; }
-        .ics-import-area .import-icon { font-size: 40px; margin-bottom: 8px; }
-        .ics-import-area .import-text { color: #a0b3d9; font-size: 14px; }
-        .ics-import-area .import-sub { color: #6b7b9a; font-size: 12px; margin-top: 4px; }
-        .import-stats { color: #10b981; font-size: 13px; margin-top: 8px; }
-        
-        .ical-url-input { display: flex; gap: 10px; margin-top: 12px; }
-        .ical-url-input input { flex: 1; background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 10px; color: white; font-size: 14px; }
-        .ical-url-input input::placeholder { color: #5f7190; }
+    .stat span {
+      font-size: 12px;
+      color: #737373;
+    }
 
-        /* Subject tabs */
-        .subject-tab { background: #1a2332; border-radius: 16px; margin-bottom: 8px; overflow: hidden; }
-        .subject-tab-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .subject-tab-header:hover { background: #1f2a3f; }
-        .subject-tab-header .subject-name { font-weight: 600; font-size: 16px; }
-        .subject-tab-header .subject-arrow { color: #6b7b9a; transition: 0.3s; }
-        .subject-tab-header .subject-arrow.open { transform: rotate(180deg); }
-        .subject-tab-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 16px; }
-        .subject-tab-content.open { max-height: 1000px; padding: 0 16px 16px 16px; }
-        .subject-tab-content .resource-item { background: #0b1120; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .subject-tab-content .resource-item .resource-text { flex: 1; font-size: 14px; }
-        .subject-tab-content .resource-item .resource-type { font-size: 11px; padding: 2px 10px; border-radius: 20px; background: #1f2a3f; color: #a0b3d9; }
-        .subject-tab-content textarea { width: 100%; background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 10px; color: white; font-size: 14px; margin-top: 8px; resize: vertical; min-height: 60px; }
-        .subject-tab-content textarea::placeholder { color: #5f7190; }
+    .add-box {
+      background: white;
+      padding: 15px;
+      border-radius: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.06);
+      margin-bottom: 18px;
+    }
 
-        /* Reminders */
-        .reminder-item { background: #1a2332; border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
-        .reminder-item .reminder-text { flex: 1; font-size: 14px; }
-        .reminder-item .reminder-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 16px; }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
 
-        /* Sports highlights */
-        .highlight-area { background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 12px; margin-top: 8px; }
-        .highlight-area textarea { width: 100%; background: transparent; border: none; color: white; font-size: 14px; resize: vertical; min-height: 60px; outline: none; }
-        .highlight-area textarea::placeholder { color: #5f7190; }
-        .highlight-item { background: #1a2332; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; border-left: 3px solid #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #ddd6fe;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 15px;
+      outline: none;
+      background: #fafafa;
+    }
 
-        .sport-schedule-edit { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
-        .sport-schedule-edit input { flex: 1; background: #0b1120; border: 1px solid #2a3649; border-radius: 12px; padding: 8px 12px; color: white; font-size: 14px; }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #7c3aed;
+    }
 
-        /* Log entries */
-        .log-entry { background: #1a2332; border-radius: 16px; padding: 14px; margin-bottom: 10px; border-left: 3px solid #7c3aed; display: flex; justify-content: space-between; align-items: flex-start; }
-        .log-entry .log-content { flex: 1; }
-        .log-entry .log-date { color: #7c3aed; font-weight: 600; font-size: 14px; }
-        .log-entry .log-text { margin-top: 6px; color: #d0dbe8; }
-        .log-entry .log-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 18px; padding: 4px 8px; }
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: bold;
+    }
 
-        .date-display { color: #9aabcf; font-size: 13px; }
-    </style>
-    <link rel="manifest" href="manifest.json">
+    .add-btn {
+      background: #7c3aed;
+      color: white;
+      min-width: 70px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 22px 0 10px;
+    }
+
+    .section-title h2 {
+      font-size: 19px;
+    }
+
+    .clear-btn {
+      background: transparent;
+      color: #7c3aed;
+      padding: 5px;
+    }
+
+    .task {
+      background: white;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.05);
+    }
+
+    .task.done {
+      opacity: .55;
+    }
+
+    .task.done .task-name {
+      text-decoration: line-through;
+    }
+
+    .check {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      border: 2px solid #a78bfa;
+      border-radius: 50%;
+      background: white;
+      padding: 0;
+    }
+
+    .task.done .check {
+      background: #7c3aed;
+      border-color: #7c3aed;
+    }
+
+    .task-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-name {
+      font-weight: bold;
+      word-break: break-word;
+    }
+
+    .task-meta {
+      font-size: 12px;
+      color: #737373;
+      margin-top: 4px;
+    }
+
+    .delete {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 8px 10px;
+    }
+
+    .empty {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      text-align: center;
+      color: #737373;
+    }
+
+    .log-box {
+      background: white;
+      padding: 15px;
+      border-radius: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.06);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .save-log {
+      background: #7c3aed;
+      color: white;
+      width: 100%;
+    }
+
+    .quote {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #ede9fe;
+      color: #5b21b6;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .filters {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      margin-bottom: 12px;
+    }
+
+    .filter {
+      background: white;
+      color: #555;
+      white-space: nowrap;
+      padding: 9px 13px;
+    }
+
+    .filter.active {
+      background: #7c3aed;
+      color: white;
+    }
+
+    @media (max-width: 400px) {
+      .stats {
+        gap: 6px;
+      }
+
+      .stat {
+        padding: 12px 5px;
+      }
+
+      .stat strong {
+        font-size: 19px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="app" id="app">
-    <!-- Today Page -->
-    <div id="page-today" class="page active">
-        <div class="today-header">
-            <div><div style="font-size:22px;font-weight:700;">LevelUp</div><br><br><div style="color:#9aabcf;font-size:14px;" id="dateDisplay"></div></div>
-            <div><span class="xp-level">⚡ <span id="xpDisplay">0</span> XP</span><span class="streak">🔥 <span id="streakDisplay">0</span></span></div>
-        </div>
-        <div class="card">
-            <div class="flex-between"><span>Level <span id="levelDisplay">1</span></span><span id="levelProgressText">0 / 100 XP</span></div>
-            <div class="progress-bar"><div class="progress-fill" id="levelProgressFill"></div></div>
-        </div>
-        <div class="card">
-            <div class="flex-between"><div class="card-title">📋 Daily routine</div><button class="btn btn-sm btn-outline" id="resetRoutineBtn" style="margin:0;">Reset</button></div>
-            <div id="routineList"></div>
-            <div class="add-routine-row">
-                <input type="text" id="newRoutineInput" placeholder="Add new task...">
-                <button class="btn btn-sm btn-success" id="addRoutineBtn" style="width:auto;margin:0;">+</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="flex-between"><div class="card-title">📚 Study blocks</div><button class="btn btn-sm btn-outline" id="editStudyBtn" style="margin:0;">✏️ Customize</button></div>
-            <div id="studyBlocksToday"></div>
-        </div>
-        <div class="card"><div class="card-title">⏰ Upcoming reminders</div><div id="upcomingReminders"></div></div>
-        <div class="card"><div class="card-title">💭 Daily quote</div><div id="dailyQuoteDisplay" class="quote-text"></div></div>
-        <div class="card">
-            <div class="flex-between"><span>📊 Today progress</span><span id="todayProgressPercent">0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" id="todayProgressFill"></div></div>
-        </div>
+
+  <header>
+    <h1>⚡ LevelUp</h1>
+    <p>Get things done. Level up your day.</p>
+  </header>
+
+  <main>
+
+    <div class="stats">
+      <div class="stat">
+        <strong id="totalCount">0</strong>
+        <span>Total</span>
+      </div>
+
+      <div class="stat">
+        <strong id="completedCount">0</strong>
+        <span>Completed</span>
+      </div>
+
+      <div class="stat">
+        <strong id="streakCount">0</strong>
+        <span>Day Streak 🔥</span>
+      </div>
     </div>
 
-    <!-- To Do Page -->
-    <div id="page-todo" class="page">
-        <div class="card"><div class="card-title">✅ Big goals & projects</div><div id="bigGoalsList"></div><button class="btn btn-sm btn-outline" id="addGoalBtn">+ Add goal</button></div>
-        <div class="card"><div class="card-title">📌 Daily tasks</div><div id="dailyTasksList"></div><button class="btn btn-sm btn-outline" id="addTaskBtn">+ Add task</button></div>
-        <div class="card"><div class="card-title">📝 Homework</div><div id="homeworkList"></div><button class="btn btn-sm btn-outline" id="addHomeworkBtn">+ Add homework</button></div>
+    <div class="add-box">
+      <div class="input-row">
+        <input
+          id="taskInput"
+          type="text"
+          placeholder="Add a task..."
+          maxlength="120"
+        >
+
+        <button class="add-btn" onclick="addTask()">Add</button>
+      </div>
     </div>
 
-    <!-- Study Page -->
-    <div id="page-study" class="page">
-        <div class="card"><div class="card-title">📖 Customize study blocks</div><div id="studyScheduleDisplay"></div></div>
-        <div class="card"><div class="card-title">📚 Subject hub</div><div id="subjectHubContainer"></div></div>
+    <div class="filters">
+      <button class="filter active" onclick="setFilter('all', this)">All</button>
+      <button class="filter" onclick="setFilter('active', this)">Active</button>
+      <button class="filter" onclick="setFilter('done', this)">Done</button>
     </div>
 
-    <!-- Sports Page -->
-    <div id="page-sports" class="page">
-        <div class="card">
-            <div class="card-title">⚽ Soccer</div>
-            <div id="soccerContent"></div>
-            <div class="sport-schedule-edit">
-                <input type="text" id="soccerScheduleInput" placeholder="Wed 3:30-5:30 training, Sat 11:30-2:00 game">
-                <button class="btn btn-sm btn-success" id="updateSoccerSchedule">Update</button>
-            </div>
-            <div style="margin-top:12px;">
-                <div class="card-title" style="font-size:13px;">🏆 Match Highlights</div>
-                <div class="highlight-area">
-                    <textarea id="soccerHighlightInput" placeholder="Write your match/training highlights here..."></textarea>
-                    <button class="btn btn-sm btn-outline" id="addSoccerHighlight" style="margin-top:8px;">+ Add Highlight</button>
-                </div>
-                <div id="soccerHighlightsList"></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">🎾 Tennis</div>
-            <div id="tennisContent"></div>
-            <div class="sport-schedule-edit">
-                <input type="text" id="tennisScheduleInput" placeholder="Sat/Sun 4:00-6:00 PM training">
-                <button class="btn btn-sm btn-success" id="updateTennisSchedule">Update</button>
-            </div>
-            <div style="margin-top:12px;">
-                <div class="card-title" style="font-size:13px;">🏆 Match Highlights</div>
-                <div class="highlight-area">
-                    <textarea id="tennisHighlightInput" placeholder="Write your match/training highlights here..."></textarea>
-                    <button class="btn btn-sm btn-outline" id="addTennisHighlight" style="margin-top:8px;">+ Add Highlight</button>
-                </div>
-                <div id="tennisHighlightsList"></div>
-            </div>
-        </div>
+    <div class="section-title">
+      <h2>Today's Tasks</h2>
+      <button class="clear-btn" onclick="clearCompleted()">Clear done</button>
     </div>
 
-    <!-- Log Page -->
-    <div id="page-log" class="page">
-        <div class="card">
-            <div class="card-title">🧠 Daily log</div>
-            <div id="logEntries"></div>
-            <button class="btn btn-sm btn-outline" id="addLogBtn">+ New entry</button>
-        </div>
+    <div id="taskList"></div>
+
+    <div class="section-title">
+      <h2>📝 Daily Log</h2>
     </div>
 
-    <!-- Calendar Page -->
-    <div id="page-calendar" class="page">
-        <div class="card">
-            <div class="calendar-header">
-                <button id="prevMonth">‹</button>
-                <span class="month-year" id="monthYear"></span>
-                <button id="nextMonth">›</button>
-            </div>
-            <div class="calendar-weekdays">
-                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-            <div class="calendar-events" id="calendarEvents">
-                <div class="no-events">Select a date to see events</div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">📥 Import Google Calendar</div>
-            <div class="ics-import-area" id="icsDropArea">
-                <div class="import-icon">📅</div>
-                <div class="import-text">Drop .ics file here or tap to browse</div>
-                <div class="import-sub">Export from Google Calendar → Settings → Export</div>
-                <input type="file" id="icsFileInput" accept=".ics">
-                <button class="btn btn-sm btn-outline" id="icsImportBtn" style="margin-top:12px;width:auto;">Choose File</button>
-                <div id="importStats" class="import-stats"></div>
-            </div>
-            <div style="margin-top:12px;border-top:1px solid #1f2a3f;padding-top:12px;">
-                <div style="font-size:13px;color:#a0b3d9;margin-bottom:8px;">🔄 Or sync via iCal URL</div>
-                <div class="ical-url-input">
-                    <input type="text" id="icalUrlInput" placeholder="Paste Google Calendar iCal URL">
-                    <button class="btn btn-sm btn-success" id="syncIcalBtn" style="width:auto;margin:0;">Sync</button>
-                </div>
-                <div id="icalStatus" style="color:#6b7b9a;font-size:12px;margin-top:4px;"></div>
-                <div style="color:#5f7190;font-size:11px;margin-top:6px;">
-                    💡 Get URL: Google Calendar → Settings → Your Calendar → Integrate calendar → Secret address in iCal format
-                </div>
-            </div>
-            <div style="margin-top:12px;border-top:1px solid #1f2a3f;padding-top:12px;">
-                <button class="btn btn-sm btn-danger" id="clearEventsBtn" style="width:auto;">🗑️ Clear all imported events</button>
-            </div>
-        </div>
+    <div class="log-box">
+      <textarea
+        id="dailyLog"
+        placeholder="How was your day? What did you do?"
+      ></textarea>
+
+      <button class="save-log" onclick="saveLog()">
+        Save Today's Log
+      </button>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-item active" data-page="today"><i>🏠</i>Today</button>
-        <button class="nav-item" data-page="todo"><i>✅</i>To Do</button>
-        <button class="nav-item" data-page="study"><i>📚</i>Study</button>
-        <button class="nav-item" data-page="calendar"><i>📅</i>Calendar</button>
-        <button class="nav-item" data-page="sports"><i>⚽</i>Sports</button>
-        <button class="nav-item" data-page="log"><i>📝</i>Log</button>
+    <div class="quote" id="quote">
+      Small progress is still progress.
     </div>
-</div>
 
-<script>
-// DATA
-const DATA = {
-    xp: 0, level: 1, streak: 0, lastDate: '',
-    tasks: [], goals: [], homework: [], events: [],
-    routine: [], routineLabels: [],
-    studySchedule: {},
-    reminders: ['Study at 5 PM', 'Stretch before bed', 'Pack school bag', 'Do Duolingo'],
-    quotes: [], logs: [],
-    tennis: { day: 'saturday', schedule: 'Sat/Sun 4:00-6:00 PM training' },
-    soccer: { schedule: 'Wed 3:30-5:30 training, Sat 11:30-2:00 game' },
-    soccerHighlights: [],
-    tennisHighlights: [],
-    subjectResources: {}
-};
+  </main>
 
-function load() { try { const d = JSON.parse(localStorage.getItem('levelup_data')); if(d) Object.assign(DATA,d); } catch(e){} }
-function save() { localStorage.setItem('levelup_data', JSON.stringify(DATA)); }
-load();
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("levelupTasks")) || [];
+    let currentFilter = "all";
 
-const SUBJECTS = ['Maths','Science','English','History','Religion','Music','Woodwork','French','PE'];
-const DEFAULT_ROUTINE = ['6:00 - Wake up','7:30 - Catch bus','9:00-4:00 - School','4:00-5:00 - Chill','5:00-5:45 - Study Block 1','5:45-6:00 - Break','6:00-6:30 - Dinner','6:30-7:00 - Study Block 2','7:00-7:15 - Break','7:15-7:30 - Study Block 3','7:30-8:30 - Hobby','8:30-9:00 - Prepare','9:00 - Sleep'];
-const WEEKEND_ROUTINE = ['9:00 - Wake up','10:00 - Breakfast','11:00 - Study/Work','12:00 - Chill','1:00 - Lunch','2:00 - Hobby/Relax','4:00 - Study/Work','6:00 - Chill','7:00 - Dinner','8:00 - Relax','10:00 - Sleep'];
-
-function initData() {
-    if(!DATA.goals.length) DATA.goals = [
-        { text: 'Start a new business', done: false, due: '2026-08-15' },
-        { text: 'Learn a new song on piano', done: false, due: '2026-08-20' },
-        { text: 'Code the LevelUp app', done: false, due: '2026-08-30' }
+    const quotes = [
+      "Small progress is still progress.",
+      "You don't need to be perfect. Just start.",
+      "One task at a time.",
+      "Future you will thank you.",
+      "Lock in. You got this.",
+      "Consistency beats motivation.",
+      "Make today count."
     ];
-    if(!DATA.tasks.length) DATA.tasks = [
-        { text: 'Do Duolingo French', done: false, due: null },
-        { text: 'Pack school bag', done: false, due: null },
-        { text: 'Stretch before bed', done: false, due: null }
-    ];
-    if(!DATA.homework.length) DATA.homework = [
-        { subject: 'Maths', task: 'Chapter 5 exercises', due: '2026-08-12', done: false },
-        { subject: 'English', task: 'Essay draft', due: '2026-08-14', done: false },
-        { subject: 'Science', task: 'Lab report', due: '2026-08-16', done: false }
-    ];
-    if(!DATA.events) DATA.events = [];
-    if(!DATA.soccerHighlights) DATA.soccerHighlights = [];
-    if(!DATA.tennisHighlights) DATA.tennisHighlights = [];
-    if(!DATA.subjectResources) DATA.subjectResources = {};
-    SUBJECTS.forEach(s => { if(!DATA.subjectResources[s]) DATA.subjectResources[s] = []; });
-    if(!DATA.logs) DATA.logs = [];
-    
-    if(!DATA.routineLabels.length) {
-        const isWeekend = ['saturday','sunday'].includes(dayName());
-        DATA.routineLabels = isWeekend ? [...WEEKEND_ROUTINE] : [...DEFAULT_ROUTINE];
-    }
-    const defaultSchedule = {
-        monday: { block1: 'Maths', block2: 'English', block3: 'Remaining homework' },
-        tuesday: { block1: 'Science', block2: 'History', block3: 'Remaining homework' },
-        wednesday: { block1: 'Soccer training', block2: 'Adjust around training', block3: 'Remaining homework' },
-        thursday: { block1: 'Science', block2: 'History', block3: 'Remaining homework' },
-        friday: { block1: 'Weekly revision', block2: 'Catch-up/homework', block3: 'Remaining homework' },
-        saturday: { block1: 'Study', block2: 'Study', block3: 'Homework' },
-        sunday: { block1: 'Study', block2: 'Study', block3: 'Homework' }
-    };
-    for(const [day, val] of Object.entries(defaultSchedule)) {
-        if(!DATA.studySchedule[day]) DATA.studySchedule[day] = val;
-    }
-    if(!DATA.quotes.length) DATA.quotes = [
-        'Discipline is choosing between what you want now and what you want most.',
-        'Success is the sum of small efforts repeated daily.',
-        'Be the hardest worker in the room.',
-        'Focus on the step, not the stair.'
-    ];
-    if(DATA.routine.length !== DATA.routineLabels.length) {
-        DATA.routine = new Array(DATA.routineLabels.length).fill(false);
-    }
-    save();
-}
-initData();
 
-function today() { return new Date().toISOString().slice(0,10); }
-function dayName() { return ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][new Date().getDay()]; }
-function getDayDisplay() { return dayName().charAt(0).toUpperCase() + dayName().slice(1); }
-
-function formatDate(dateStr) {
-    if(!dateStr) return '';
-    const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2,'0');
-    const month = String(d.getMonth() + 1).padStart(2,'0');
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    return `${day}/${month} ${days[d.getDay()]}`;
-}
-
-function addXP(amount) { 
-    DATA.xp += amount; 
-    while(DATA.xp >= 100) { DATA.xp -= 100; DATA.level++; }
-    save(); renderAll();
-}
-
-let currentDate = new Date();
-let selectedDate = new Date();
-
-function renderAll() {
-    renderToday(); renderTodo(); renderStudy(); renderSports(); renderLog(); renderCalendar(); renderImportStats();
-    document.getElementById('xpDisplay').textContent = DATA.xp;
-    document.getElementById('levelDisplay').textContent = DATA.level;
-    document.getElementById('streakDisplay').textContent = DATA.streak;
-    document.getElementById('levelProgressText').textContent = `${DATA.xp} / 100 XP`;
-    document.getElementById('levelProgressFill').style.width = Math.floor((DATA.xp/100)*100)+'%';
-    document.getElementById('dateDisplay').textContent = formatDate(today());
-}
-
-function renderToday() {
-    document.getElementById('routineList').innerHTML = DATA.routineLabels.map((label,i)=>`
-        <div class="task-item" data-action="routine" data-index="${i}">
-            <div class="task-check ${DATA.routine[i]?'done':''}">${DATA.routine[i]?'✓':''}</div>
-            <div class="task-text ${DATA.routine[i]?'done':''}">${label}</div>
-            <button class="task-edit-btn" data-action="edit-routine" data-index="${i}">✏️</button>
-            <button class="task-delete-btn" data-action="delete-routine" data-index="${i}">✕</button>
-        </div>
-    `).join('');
-
-    const day = dayName();
-    const sched = DATA.studySchedule[day] || { block1:'Maths', block2:'English', block3:'Remaining homework' };
-    document.getElementById('studyBlocksToday').innerHTML = `
-        <div class="schedule-block"><div class="block-label">🔹 Block 1</div><div class="block-subject">${sched.block1}</div></div>
-        <div class="schedule-block"><div class="block-label">🔸 Block 2</div><div class="block-subject">${sched.block2}</div></div>
-        <div class="schedule-block"><div class="block-label">🔹 Block 3</div><div class="block-subject">${sched.block3}</div></div>
-    `;
-    
-    const remindersHtml = DATA.reminders.map(r => `<div class="reminder-item"><span class="reminder-text">• ${r}</span><button class="reminder-delete" data-reminder="${r}">✕</button></div>`).join('');
-    document.getElementById('upcomingReminders').innerHTML = remindersHtml || 'No reminders';
-    
-    const q = DATA.quotes[Math.floor(Math.random()*DATA.quotes.length)] || 'Small daily improvements lead to stunning results.';
-    document.getElementById('dailyQuoteDisplay').textContent = '“'+q+'”';
-    const done = DATA.routine.filter(Boolean).length;
-    const pct = DATA.routineLabels.length > 0 ? Math.min(100, Math.round((done/DATA.routineLabels.length)*100)) : 0;
-    document.getElementById('todayProgressPercent').textContent = pct+'%';
-    document.getElementById('todayProgressFill').style.width = pct+'%';
-}
-
-function renderTodo() {
-    document.getElementById('bigGoalsList').innerHTML = DATA.goals.map((g,i)=>`
-        <div class="task-item" data-action="goal" data-index="${i}">
-            <div class="task-check ${g.done?'done':''}">${g.done?'✓':''}</div>
-            <div class="task-text ${g.done?'done':''}">${g.text} ${g.due ? '📅 '+formatDate(g.due) : ''}</div>
-        </div>
-    `).join('') || '<div style="color:#6b7b9a;">No big goals</div>';
-
-    document.getElementById('dailyTasksList').innerHTML = DATA.tasks.map((t,i)=>`
-        <div class="task-item" data-action="task" data-index="${i}">
-            <div class="task-check ${t.done?'done':''}">${t.done?'✓':''}</div>
-            <div class="task-text ${t.done?'done':''}">${t.text} ${t.due ? '📅 '+formatDate(t.due) : ''}</div>
-        </div>
-    `).join('') || '<div style="color:#6b7b9a;">No tasks</div>';
-
-    document.getElementById('homeworkList').innerHTML = DATA.homework.map((h,i)=>`
-        <div class="task-item" data-action="homework" data-index="${i}">
-            <div class="task-check ${h.done?'done':''}">${h.done?'✓':''}</div>
-            <div class="task-text ${h.done?'done':''}">${h.subject}: ${h.task} ${h.due ? '📅 '+formatDate(h.due) : ''}</div>
-        </div>
-    `).join('') || '<div style="color:#6b7b9a;">No homework</div>';
-}
-
-function renderStudy() {
-    const day = dayName();
-    const sched = DATA.studySchedule[day] || { block1:'Maths', block2:'English', block3:'Remaining homework' };
-    document.getElementById('studyScheduleDisplay').innerHTML = `
-        <div style="margin-bottom:12px;"><strong>${getDayDisplay()}</strong></div>
-        <div class="schedule-block"><div class="block-label">🔹 Block 1</div>
-            <select class="subject-select" onchange="window.updateStudyBlock(1, this.value)">
-                ${SUBJECTS.map(s => `<option value="${s}" ${s===sched.block1?'selected':''}>${s}</option>`).join('')}
-                <option value="Remaining homework" ${sched.block1==='Remaining homework'?'selected':''}>Remaining homework</option>
-            </select>
-        </div>
-        <div class="schedule-block"><div class="block-label">🔸 Block 2</div>
-            <select class="subject-select" onchange="window.updateStudyBlock(2, this.value)">
-                ${SUBJECTS.map(s => `<option value="${s}" ${s===sched.block2?'selected':''}>${s}</option>`).join('')}
-                <option value="Remaining homework" ${sched.block2==='Remaining homework'?'selected':''}>Remaining homework</option>
-            </select>
-        </div>
-        <div class="schedule-block"><div class="block-label">🔹 Block 3</div>
-            <select class="subject-select" onchange="window.updateStudyBlock(3, this.value)">
-                ${SUBJECTS.map(s => `<option value="${s}" ${s===sched.block3?'selected':''}>${s}</option>`).join('')}
-                <option value="Remaining homework" ${sched.block3==='Remaining homework'?'selected':''}>Remaining homework</option>
-            </select>
-        </div>
-    `;
-    
-    let hubHtml = '';
-    SUBJECTS.forEach(subject => {
-        const resources = DATA.subjectResources[subject] || [];
-        const isOpen = window._openSubjects && window._openSubjects[subject];
-        hubHtml += `
-            <div class="subject-tab">
-                <div class="subject-tab-header" data-subject="${subject}">
-                    <span class="subject-name">📘 ${subject}</span>
-                    <span class="subject-arrow ${isOpen?'open':''}">▼</span>
-                </div>
-                <div class="subject-tab-content ${isOpen?'open':''}">
-                    ${resources.map((r,i) => `
-                        <div class="resource-item">
-                            <span class="resource-text">${r}</span>
-                            <button class="btn btn-sm btn-danger" data-delete-resource="${subject}" data-index="${i}" style="margin:0;padding:4px 10px;width:auto;font-size:12px;">✕</button>
-                        </div>
-                    `).join('')}
-                    <div style="display:flex;gap:8px;margin-top:8px;">
-                        <input type="text" id="resourceInput_${subject}" placeholder="Add link, note, or material..." style="flex:1;background:#0b1120;border:1px solid #2a3649;border-radius:12px;padding:8px;color:white;font-size:13px;">
-                        <button class="btn btn-sm btn-success" data-add-resource="${subject}" style="margin:0;width:auto;">+</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    document.getElementById('subjectHubContainer').innerHTML = hubHtml;
-}
-
-window.updateStudyBlock = function(blockNum, value) {
-    const day = dayName();
-    if(!DATA.studySchedule[day]) DATA.studySchedule[day] = { block1:'Maths', block2:'English', block3:'Remaining homework' };
-    const key = 'block' + blockNum;
-    DATA.studySchedule[day][key] = value;
-    save(); renderAll();
-};
-
-function renderSports() {
-    document.getElementById('soccerContent').innerHTML = `
-        <div>⚽ ${DATA.soccer.schedule || 'Wed 3:30-5:30 training, Sat 11:30-2:00 game'}</div>
-    `;
-    document.getElementById('soccerScheduleInput').value = DATA.soccer.schedule || '';
-    
-    const highlightsHtml = DATA.soccerHighlights.map((h,i) => `
-        <div class="highlight-item">
-            <span>${h}</span>
-            <button class="btn btn-sm btn-danger" data-delete-soccer-highlight="${i}" style="margin:0;padding:2px 8px;width:auto;font-size:11px;">✕</button>
-        </div>
-    `).join('');
-    document.getElementById('soccerHighlightsList').innerHTML = highlightsHtml || '<div style="color:#6b7b9a;font-size:13px;">No highlights yet</div>';
-    
-    document.getElementById('tennisContent').innerHTML = `
-        <div>🎾 ${DATA.tennis.schedule || 'Sat/Sun 4:00-6:00 PM training'}</div>
-    `;
-    document.getElementById('tennisScheduleInput').value = DATA.tennis.schedule || '';
-    
-    const tennisHighlightsHtml = DATA.tennisHighlights.map((h,i) => `
-        <div class="highlight-item">
-            <span>${h}</span>
-            <button class="btn btn-sm btn-danger" data-delete-tennis-highlight="${i}" style="margin:0;padding:2px 8px;width:auto;font-size:11px;">✕</button>
-        </div>
-    `).join('');
-    document.getElementById('tennisHighlightsList').innerHTML = tennisHighlightsHtml || '<div style="color:#6b7b9a;font-size:13px;">No highlights yet</div>';
-}
-
-function renderLog() {
-    const entries = DATA.logs.slice().reverse().map((l,i) => `
-        <div class="log-entry">
-            <div class="log-content">
-                <div class="log-date">📅 ${l.date} ${l.day ? '· '+l.day : ''}</div>
-                <div class="log-text">${l.text||'No details'}</div>
-            </div>
-            <button class="log-delete" data-log-index="${DATA.logs.length - 1 - i}">✕</button>
-        </div>
-    `).join('');
-    document.getElementById('logEntries').innerHTML = entries || '<div style="color:#6b7b9a;">No log entries</div>';
-}
-
-function renderImportStats() {
-    const stats = document.getElementById('importStats');
-    if(DATA.events && DATA.events.length > 0) {
-        stats.textContent = `✅ ${DATA.events.length} events imported`;
-        stats.style.color = '#10b981';
-    } else {
-        stats.textContent = '';
-    }
-}
-
-// ===== CALENDAR =====
-function getEventsForDate(dateStr) {
-    const events = [];
-    DATA.goals.forEach(g => { if(g.due === dateStr) events.push({ text: g.text, type: 'goal', done: g.done }); });
-    DATA.tasks.forEach(t => { if(t.due === dateStr) events.push({ text: t.text, type: 'task', done: t.done }); });
-    DATA.homework.forEach(h => { if(h.due === dateStr) events.push({ text: `${h.subject}: ${h.task}`, type: 'homework', done: h.done }); });
-    if(DATA.events) {
-        DATA.events.forEach(e => {
-            if(e.date === dateStr) events.push({ text: e.title, type: 'event', done: false });
-        });
-    }
-    return events;
-}
-
-function showEventsForDate(dateStr) {
-    const events = getEventsForDate(dateStr);
-    const container = document.getElementById('calendarEvents');
-    if(events.length === 0) {
-        container.innerHTML = `<div class="no-events">No events for this day</div>`;
-        return;
-    }
-    container.innerHTML = events.map(e => `
-        <div class="event-item ${e.type}-event ${e.done?'done-event':''}">
-            <span class="event-text">${e.done ? '✅' : '○'} ${e.text}</span>
-            <span class="event-type">${e.type}</span>
-        </div>
-    `).join('');
-}
-
-function renderCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayStr = today();
-
-    document.getElementById('monthYear').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-    let html = '';
-    const prevMonthDays = new Date(year, month, 0).getDate();
-    for (let i = firstDay - 1; i >= 0; i--) {
-        html += `<div class="calendar-day other-month">${prevMonthDays - i}</div>`;
+    function saveTasks() {
+      localStorage.setItem("levelupTasks", JSON.stringify(tasks));
     }
 
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const isToday = dateStr === todayStr;
-        const events = getEventsForDate(dateStr);
-        const hasEvents = events.length > 0;
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const name = input.value.trim();
 
-        html += `
-            <div class="calendar-day ${isToday?'today':''} ${hasEvents?'has-events':''}" data-date="${dateStr}">
-                <div class="day-number">${day}</div>
-                ${hasEvents ? `<div class="day-dots">${events.slice(0,2).map(e => `<div class="day-dot ${e.type}"></div>`).join('')}</div>` : ''}
-            </div>
-        `;
-    }
+      if (!name) return;
 
-    const totalDays = firstDay + daysInMonth;
-    const remainingDays = (7 - (totalDays % 7)) % 7;
-    for (let day = 1; day <= remainingDays; day++) {
-        html += `<div class="calendar-day other-month">${day}</div>`;
-    }
-
-    document.getElementById('calendarGrid').innerHTML = html;
-
-    document.querySelectorAll('.calendar-day[data-date]').forEach(el => {
-        el.addEventListener('click', function() {
-            const date = this.dataset.date;
-            selectedDate = new Date(date);
-            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-            this.classList.add('selected');
-            showEventsForDate(date);
-        });
-    });
-
-    const todayEl = document.querySelector('.calendar-day.today');
-    if (todayEl) {
-        todayEl.classList.add('selected');
-        showEventsForDate(todayStr);
-    } else {
-        const firstDayEl = document.querySelector('.calendar-day:not(.other-month)');
-        if (firstDayEl) {
-            firstDayEl.classList.add('selected');
-            showEventsForDate(firstDayEl.dataset.date);
-        }
-    }
-}
-
-// ===== FIXED ICS PARSER - Correctly handles timezone offsets =====
-function parseICS(text) {
-    const events = [];
-    const lines = text.split(/\r?\n/);
-    let currentEvent = null;
-    let inEvent = false;
-    let multilineField = '';
-    let multilineValue = '';
-    
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        
-        // Handle line folding
-        if (line.startsWith(' ') || line.startsWith('\t')) {
-            if (multilineField) {
-                multilineValue += line.trim();
-                continue;
-            }
-            continue;
-        }
-        
-        // Save multiline value
-        if (multilineField && !line.startsWith(' ') && !line.startsWith('\t')) {
-            if (inEvent && currentEvent) {
-                if (multilineField === 'SUMMARY') {
-                    currentEvent.summary = multilineValue;
-                } else if (multilineField === 'DESCRIPTION') {
-                    currentEvent.description = multilineValue;
-                }
-            }
-            multilineField = '';
-            multilineValue = '';
-        }
-        
-        line = line.trim();
-        
-        if (line === 'BEGIN:VEVENT') {
-            inEvent = true;
-            currentEvent = {};
-            multilineField = '';
-            multilineValue = '';
-        } else if (line === 'END:VEVENT') {
-            if (currentEvent && currentEvent.dtstart) {
-                let dateStr = currentEvent.dtstart;
-                
-                // Handle timezone offsets
-                // Format: 20240812T100000Z (UTC)
-                // Format: 20240812T100000-0500 (with offset)
-                // Format: 20240812T100000 (no timezone)
-                
-                let datePart = dateStr;
-                let timePart = '00:00:00';
-                let offsetHours = 0;
-                let offsetMinutes = 0;
-                
-                // Extract date and time
-                if (dateStr.includes('T')) {
-                    const parts = dateStr.split('T');
-                    datePart = parts[0];
-                    let timeWithOffset = parts[1] || '';
-                    
-                    // Check for timezone offset
-                    const offsetMatch = timeWithOffset.match(/(\d{6})([+-])(\d{2})(\d{2})?/);
-                    if (offsetMatch) {
-                        timePart = offsetMatch[1].substring(0,2) + ':' + offsetMatch[1].substring(2,4) + ':' + offsetMatch[1].substring(4,6);
-                        const sign = offsetMatch[2] === '+' ? 1 : -1;
-                        offsetHours = parseInt(offsetMatch[3]) * sign;
-                        offsetMinutes = parseInt(offsetMatch[4] || '00') * sign;
-                    } else if (timeWithOffset.endsWith('Z')) {
-                        // UTC time
-                        timePart = timeWithOffset.substring(0,2) + ':' + timeWithOffset.substring(2,4) + ':' + timeWithOffset.substring(4,6);
-                        offsetHours = 0;
-                        offsetMinutes = 0;
-                    } else {
-                        // No timezone, assume local
-                        timePart = timeWithOffset.substring(0,2) + ':' + timeWithOffset.substring(2,4) + ':' + timeWithOffset.substring(4,6);
-                        offsetHours = 0;
-                        offsetMinutes = 0;
-                    }
-                }
-                
-                // Parse the date
-                let year, month, day;
-                if (datePart.length === 8 && !datePart.includes('-')) {
-                    year = parseInt(datePart.substring(0,4));
-                    month = parseInt(datePart.substring(4,6)) - 1;
-                    day = parseInt(datePart.substring(6,8));
-                } else if (datePart.includes('-')) {
-                    const parts = datePart.split('-');
-                    year = parseInt(parts[0]);
-                    month = parseInt(parts[1]) - 1;
-                    day = parseInt(parts[2]);
-                } else {
-                    continue; // Invalid date format
-                }
-                
-                // Create date object
-                const eventDate = new Date(year, month, day);
-                
-                // Apply timezone offset if not UTC
-                if (!dateStr.endsWith('Z')) {
-                    // If there's a time component, adjust for offset
-                    if (dateStr.includes('T')) {
-                        // Parse time
-                        const timeParts = timePart.split(':');
-                        let hours = parseInt(timeParts[0]) || 0;
-                        let minutes = parseInt(timeParts[1]) || 0;
-                        
-                        // Apply offset (convert to local time)
-                        eventDate.setHours(hours - offsetHours);
-                        eventDate.setMinutes(minutes - offsetMinutes);
-                    }
-                }
-                
-                // Get the date in YYYY-MM-DD format
-                const yearStr = eventDate.getFullYear();
-                const monthStr = String(eventDate.getMonth() + 1).padStart(2, '0');
-                const dayStr = String(eventDate.getDate()).padStart(2, '0');
-                const finalDateStr = `${yearStr}-${monthStr}-${dayStr}`;
-                
-                events.push({
-                    title: currentEvent.summary || 'Untitled Event',
-                    date: finalDateStr,
-                    description: currentEvent.description || '',
-                    originalDate: dateStr
-                });
-            }
-            inEvent = false;
-            currentEvent = null;
-            multilineField = '';
-            multilineValue = '';
-        } else if (inEvent && currentEvent) {
-            if (line.includes(':')) {
-                const colonIndex = line.indexOf(':');
-                let key = line.substring(0, colonIndex).trim();
-                let value = line.substring(colonIndex + 1).trim();
-                
-                if (key.includes(';')) {
-                    key = key.split(';')[0];
-                }
-                
-                if (key === 'SUMMARY') {
-                    if (value.endsWith('=')) {
-                        multilineField = 'SUMMARY';
-                        multilineValue = value;
-                    } else {
-                        currentEvent.summary = value;
-                    }
-                } else if (key === 'DESCRIPTION') {
-                    if (value.endsWith('=')) {
-                        multilineField = 'DESCRIPTION';
-                        multilineValue = value;
-                    } else {
-                        currentEvent.description = value;
-                    }
-                } else if (key === 'DTSTART' || key === 'DTSTART;VALUE=DATE') {
-                    currentEvent.dtstart = value;
-                }
-            }
-        }
-    }
-    
-    return events;
-}
-// Debug function to see what's in your ICS file
-function debugICS(text) {
-    console.log('=== ICS FILE DEBUG ===');
-    console.log('File length:', text.length, 'characters');
-    
-    // Count VEVENT blocks
-    const veventCount = (text.match(/BEGIN:VEVENT/g) || []).length;
-    console.log('Number of VEVENT blocks found:', veventCount);
-    
-    // Find all DTSTART lines
-    const dtstartMatches = text.match(/DTSTART[^\n]*/g) || [];
-    console.log('DTSTART lines found:', dtstartMatches.length);
-    dtstartMatches.forEach((line, i) => {
-        console.log(`  DTSTART ${i+1}:`, line);
-    });
-    
-    // Find all SUMMARY lines
-    const summaryMatches = text.match(/SUMMARY[^\n]*/g) || [];
-    console.log('SUMMARY lines found:', summaryMatches.length);
-    summaryMatches.forEach((line, i) => {
-        console.log(`  SUMMARY ${i+1}:`, line);
-    });
-    
-    console.log('=== END DEBUG ===');
-}
-
-// ===== EVENT DELEGATION =====
-document.addEventListener('click', function(e) {
-    const target = e.target.closest('[data-action]');
-    if(target) {
-        const action = target.dataset.action;
-        const index = parseInt(target.dataset.index);
-        
-        if(action === 'routine') {
-            DATA.routine[index] = !DATA.routine[index];
-            if(DATA.routine[index]) addXP(5);
-            save(); renderAll();
-        } else if(action === 'edit-routine') {
-            const currentLabel = DATA.routineLabels[index];
-            const newLabel = prompt('Edit routine task:', currentLabel);
-            if(newLabel && newLabel.trim()) {
-                DATA.routineLabels[index] = newLabel.trim();
-                save(); renderAll();
-            }
-        } else if(action === 'delete-routine') {
-            if(confirm('Delete this task?')) {
-                DATA.routineLabels.splice(index, 1);
-                DATA.routine.splice(index, 1);
-                save(); renderAll();
-            }
-        } else if(action === 'goal') {
-            DATA.goals[index].done = !DATA.goals[index].done;
-            if(DATA.goals[index].done) addXP(50);
-            save(); renderAll();
-        } else if(action === 'task') {
-            DATA.tasks[index].done = !DATA.tasks[index].done;
-            if(DATA.tasks[index].done) addXP(10);
-            save(); renderAll();
-        } else if(action === 'homework') {
-            DATA.homework[index].done = !DATA.homework[index].done;
-            if(DATA.homework[index].done) addXP(15);
-            save(); renderAll();
-        }
-    }
-    
-    // Log delete
-    if(e.target.classList.contains('log-delete')) {
-        const index = parseInt(e.target.dataset.logIndex);
-        if(confirm('Delete this log entry?')) {
-            DATA.logs.splice(index, 1);
-            save(); renderAll();
-        }
-    }
-    
-    // Reminder delete
-    if(e.target.classList.contains('reminder-delete')) {
-        const reminder = e.target.dataset.reminder;
-        DATA.reminders = DATA.reminders.filter(r => r !== reminder);
-        save(); renderAll();
-    }
-    
-    // Subject tab toggle
-    const tabHeader = e.target.closest('.subject-tab-header');
-    if(tabHeader) {
-        const subject = tabHeader.dataset.subject;
-        const content = tabHeader.nextElementSibling;
-        const arrow = tabHeader.querySelector('.subject-arrow');
-        content.classList.toggle('open');
-        arrow.classList.toggle('open');
-        if(!window._openSubjects) window._openSubjects = {};
-        window._openSubjects[subject] = content.classList.contains('open');
-    }
-    
-    // Add resource
-    if(e.target.dataset.addResource) {
-        const subject = e.target.dataset.addResource;
-        const input = document.getElementById('resourceInput_' + subject);
-        const text = input.value.trim();
-        if(text) {
-            if(!DATA.subjectResources[subject]) DATA.subjectResources[subject] = [];
-            DATA.subjectResources[subject].push(text);
-            input.value = '';
-            save(); renderAll();
-        }
-    }
-    
-    // Delete resource
-    if(e.target.dataset.deleteResource) {
-        const subject = e.target.dataset.deleteResource;
-        const index = parseInt(e.target.dataset.index);
-        DATA.subjectResources[subject].splice(index, 1);
-        save(); renderAll();
-    }
-    
-    // Delete soccer highlight
-    if(e.target.dataset.deleteSoccerHighlight) {
-        const index = parseInt(e.target.dataset.deleteSoccerHighlight);
-        DATA.soccerHighlights.splice(index, 1);
-        save(); renderAll();
-    }
-    
-    // Delete tennis highlight
-    if(e.target.dataset.deleteTennisHighlight) {
-        const index = parseInt(e.target.dataset.deleteTennisHighlight);
-        DATA.tennisHighlights.splice(index, 1);
-        save(); renderAll();
-    }
-});
-
-// ===== BUTTON HANDLERS =====
-document.getElementById('resetRoutineBtn')?.addEventListener('click', function() {
-    const isWeekend = ['saturday','sunday'].includes(dayName());
-    const defaultRoutine = isWeekend ? WEEKEND_ROUTINE : DEFAULT_ROUTINE;
-    if(confirm('Reset routine to default?')) {
-        DATA.routineLabels = [...defaultRoutine];
-        DATA.routine = new Array(DATA.routineLabels.length).fill(false);
-        save(); renderAll();
-    }
-});
-
-document.getElementById('addRoutineBtn')?.addEventListener('click', function() {
-    const input = document.getElementById('newRoutineInput');
-    const text = input.value.trim();
-    if(text) {
-        DATA.routineLabels.push(text);
-        DATA.routine.push(false);
-        input.value = '';
-        save(); renderAll();
-    }
-});
-
-document.getElementById('newRoutineInput')?.addEventListener('keypress', function(e) {
-    if(e.key === 'Enter') document.getElementById('addRoutineBtn').click();
-});
-
-document.getElementById('editStudyBtn')?.addEventListener('click', function() {
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-    document.querySelector('[data-page="study"]').classList.add('active');
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.getElementById('page-study').classList.add('active');
-});
-
-document.getElementById('addGoalBtn')?.addEventListener('click', function() {
-    const text = prompt('Big goal?');
-    if(text) {
-        const due = prompt('Due date? (YYYY-MM-DD) or leave blank');
-        DATA.goals.push({ text, done: false, due: due || null });
-        save(); renderAll();
-    }
-});
-
-document.getElementById('addTaskBtn')?.addEventListener('click', function() {
-    const text = prompt('Task?');
-    if(text) {
-        const due = prompt('Due date? (YYYY-MM-DD) or leave blank');
-        DATA.tasks.push({ text, done: false, due: due || null });
-        save(); renderAll();
-    }
-});
-
-document.getElementById('addHomeworkBtn')?.addEventListener('click', function() {
-    const subject = prompt('Subject?');
-    if(subject) {
-        const task = prompt('Task?');
-        if(task) {
-            const due = prompt('Due date? (YYYY-MM-DD)');
-            DATA.homework.push({ subject, task, due: due || null, done: false });
-            save(); renderAll();
-        }
-    }
-});
-
-document.getElementById('addLogBtn')?.addEventListener('click', function() {
-    const txt = prompt('What did you do today?');
-    if(txt) {
-        DATA.logs.push({ date: today(), day: getDayDisplay(), text: txt });
-        save(); renderAll();
-    }
-});
-
-// Soccer schedule update
-document.getElementById('updateSoccerSchedule')?.addEventListener('click', function() {
-    const val = document.getElementById('soccerScheduleInput').value.trim();
-    if(val) {
-        DATA.soccer.schedule = val;
-        save(); renderAll();
-    }
-});
-
-// Soccer highlight
-document.getElementById('addSoccerHighlight')?.addEventListener('click', function() {
-    const text = document.getElementById('soccerHighlightInput').value.trim();
-    if(text) {
-        DATA.soccerHighlights.push(text);
-        document.getElementById('soccerHighlightInput').value = '';
-        save(); renderAll();
-    }
-});
-
-// Tennis schedule update
-document.getElementById('updateTennisSchedule')?.addEventListener('click', function() {
-    const val = document.getElementById('tennisScheduleInput').value.trim();
-    if(val) {
-        DATA.tennis.schedule = val;
-        save(); renderAll();
-    }
-});
-
-// Tennis highlight
-document.getElementById('addTennisHighlight')?.addEventListener('click', function() {
-    const text = document.getElementById('tennisHighlightInput').value.trim();
-    if(text) {
-        DATA.tennisHighlights.push(text);
-        document.getElementById('tennisHighlightInput').value = '';
-        save(); renderAll();
-    }
-});
-
-// Calendar navigation
-document.getElementById('prevMonth')?.addEventListener('click', function() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar();
-});
-document.getElementById('nextMonth')?.addEventListener('click', function() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar();
-});
-
-// ICS Import
-function handleICSFile(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const text = e.target.result;
-            const importedEvents = parseICS(text);
-            if (importedEvents.length === 0) {
-                alert('No events found in this ICS file.');
-                return;
-            }
-            if (!DATA.events) DATA.events = [];
-            DATA.events = DATA.events.concat(importedEvents);
-            save();
-            renderAll();
-            alert(`✅ Successfully imported ${importedEvents.length} events!`);
-        } catch (err) {
-            alert('Error parsing ICS file: ' + err.message);
-        }
-    };
-    reader.readAsText(file);
-}
-
-const dropArea = document.getElementById('icsDropArea');
-const fileInput = document.getElementById('icsFileInput');
-
-dropArea?.addEventListener('click', function() { fileInput.click(); });
-dropArea?.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
-dropArea?.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
-dropArea?.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('dragover');
-    const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].name.endsWith('.ics')) {
-        handleICSFile(files[0]);
-    } else {
-        alert('Please drop a valid .ics file.');
-    }
-});
-
-document.getElementById('icsImportBtn')?.addEventListener('click', function() { fileInput.click(); });
-fileInput?.addEventListener('change', function() {
-    if (this.files.length > 0) {
-        handleICSFile(this.files[0]);
-    }
-    this.value = '';
-});
-
-// iCal URL Sync
-document.getElementById('syncIcalBtn')?.addEventListener('click', async function() {
-    const url = document.getElementById('icalUrlInput').value.trim();
-    if (!url) {
-        alert('Please paste your Google Calendar iCal URL');
-        return;
-    }
-    
-    try {
-        const statusEl = document.getElementById('icalStatus');
-        statusEl.textContent = '⏳ Syncing...';
-        statusEl.style.color = '#f59e0b';
-        
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch calendar');
-        
-        const text = await response.text();
-        const importedEvents = parseICS(text);
-        
-        if (importedEvents.length === 0) {
-            statusEl.textContent = '⚠️ No events found.';
-            statusEl.style.color = '#ef4444';
-            return;
-        }
-        
-        DATA.events = importedEvents;
-        DATA.googleCalendarUrl = url;
-        save();
-        renderAll();
-        
-        statusEl.textContent = `✅ Synced ${importedEvents.length} events!`;
-        statusEl.style.color = '#10b981';
-        document.getElementById('icalUrlInput').value = '';
-        
-    } catch (err) {
-        document.getElementById('icalStatus').textContent = '❌ Error: ' + err.message;
-        document.getElementById('icalStatus').style.color = '#ef4444';
-    }
-});
-
-document.getElementById('clearEventsBtn')?.addEventListener('click', function() {
-    if (confirm('Delete all imported events?')) {
-        DATA.events = [];
-        DATA.googleCalendarUrl = null;
-        save();
-        renderAll();
-    }
-});
-
-// ===== NAVIGATION =====
-document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-        this.classList.add('active');
-        const page = this.dataset.page;
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-        document.getElementById('page-'+page).classList.add('active');
-        if(page === 'calendar') renderCalendar();
-    });
-});
-
-// ===== STREAK & DAILY RESET =====
-(function initStreak() {
-    const d = today();
-    if(DATA.lastDate !== d) {
-        DATA.routine = new Array(DATA.routineLabels.length).fill(false);
-        const isWeekend = ['saturday','sunday'].includes(dayName());
-        const defaultRoutine = isWeekend ? WEEKEND_ROUTINE : DEFAULT_ROUTINE;
-        if(DATA.routineLabels.length === 0 || DATA.routineLabels.length !== defaultRoutine.length) {
-            DATA.routineLabels = [...defaultRoutine];
-            DATA.routine = new Array(DATA.routineLabels.length).fill(false);
-        }
-        if(DATA.lastDate) {
-            const diff = (new Date(d) - new Date(DATA.lastDate)) / (86400000);
-            if(diff === 1) DATA.streak += 1;
-            else if(diff > 1) DATA.streak = 0;
-        } else DATA.streak = 1;
-        DATA.lastDate = d;
-        addXP(10);
-        save();
-    }
-    if(DATA.routine.length !== DATA.routineLabels.length) {
-        DATA.routine = new Array(DATA.routineLabels.length).fill(false);
-    }
-    renderAll();
-})();
-</script>
-    <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js")
-    .then(() => console.log("LevelUp notifications ready"))
-    .catch(err => console.error("SW error:", err));
-}
-</script>
-    <script>
-async function enableNotifications() {
-  if (!("Notification" in window)) {
-    alert("Notifications aren't supported on this device.");
-    return;
-  }
-
-  const permission = await Notification.requestPermission();
-
-  if (permission === "granted") {
-    new Notification("LevelUp 🔥", {
-      body: "Notifications are now enabled!"
-    });
-  }
-}
-</script>
-    <script>
-if ("Notification" in window) {
-  Notification.requestPermission().then(permission => {
-    if (permission === "granted") {
-      new Notification("LevelUp 🔔", {
-        body: "Notifications are now enabled!"
+      tasks.unshift({
+        id: Date.now(),
+        name: name,
+        completed: false,
+        date: getToday()
       });
+
+      input.value = "";
+      saveTasks();
+      render();
     }
-  });
-}
-</script>
+
+    function toggleTask(id) {
+      const task = tasks.find(t => t.id === id);
+
+      if (!task) return;
+
+      task.completed = !task.completed;
+
+      saveTasks();
+      render();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+
+      saveTasks();
+      render();
+    }
+
+    function clearCompleted() {
+      tasks = tasks.filter(t => !t.completed);
+
+      saveTasks();
+      render();
+    }
+
+    function setFilter(filter, button) {
+      currentFilter = filter;
+
+      document.querySelectorAll(".filter").forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      button.classList.add("active");
+
+      render();
+    }
+
+    function getToday() {
+      const now = new Date();
+
+      return (
+        now.getFullYear() +
+        "-" +
+        String(now.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(now.getDate()).padStart(2, "0")
+      );
+    }
+
+    function render() {
+      const list = document.getElementById("taskList");
+
+      let visibleTasks = tasks;
+
+      if (currentFilter === "active") {
+        visibleTasks = tasks.filter(t => !t.completed);
+      }
+
+      if (currentFilter === "done") {
+        visibleTasks = tasks.filter(t => t.completed);
+      }
+
+      if (visibleTasks.length === 0) {
+        list.innerHTML = `
+          <div class="empty">
+            ${
+              currentFilter === "done"
+                ? "No completed tasks yet 👀"
+                : "No tasks here. Add one above 👆"
+            }
+          </div>
+        `;
+      } else {
+        list.innerHTML = visibleTasks.map(task => `
+          <div class="task ${task.completed ? "done" : ""}">
+
+            <button
+              class="check"
+              onclick="toggleTask(${task.id})"
+              aria-label="Complete task"
+            >
+              ${task.completed ? "✓" : ""}
+            </button>
+
+            <div class="task-info">
+              <div class="task-name">${escapeHTML(task.name)}</div>
+              <div class="task-meta">
+                ${task.completed ? "Completed ✓" : "Not completed"}
+              </div>
+            </div>
+
+            <button
+              class="delete"
+              onclick="deleteTask(${task.id})"
+              aria-label="Delete task"
+            >
+              🗑
+            </button>
+
+          </div>
+        `).join("");
+      }
+
+      updateStats();
+    }
+
+    function updateStats() {
+      const completed = tasks.filter(t => t.completed).length;
+
+      document.getElementById("totalCount").textContent = tasks.length;
+      document.getElementById("completedCount").textContent = completed;
+
+      calculateStreak();
+    }
+
+    function calculateStreak() {
+      let streak = Number(localStorage.getItem("levelupStreak")) || 0;
+      const lastDate = localStorage.getItem("levelupLastCompleted");
+
+      const hasCompletedToday = tasks.some(
+        task => task.completed && task.date === getToday()
+      );
+
+      if (hasCompletedToday && lastDate !== getToday()) {
+        streak++;
+        localStorage.setItem("levelupStreak", streak);
+        localStorage.setItem("levelupLastCompleted", getToday());
+      }
+
+      document.getElementById("streakCount").textContent = streak;
+    }
+
+    function saveLog() {
+      const log = document.getElementById("dailyLog").value;
+
+      localStorage.setItem(
+        "levelupLog_" + getToday(),
+        log
+      );
+
+      alert("✅ Daily log saved!");
+    }
+
+    function loadLog() {
+      const saved = localStorage.getItem(
+        "levelupLog_" + getToday()
+      );
+
+      document.getElementById("dailyLog").value = saved || "";
+    }
+
+    function escapeHTML(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById("taskInput").addEventListener(
+      "keydown",
+      function(event) {
+        if (event.key === "Enter") {
+          addTask();
+        }
+      }
+    );
+
+    document.getElementById("quote").textContent =
+      quotes[Math.floor(Math.random() * quotes.length)];
+
+    loadLog();
+    render();
+  </script>
+
 </body>
 </html>
